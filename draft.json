@@ -1,0 +1,25 @@
+{"objectif":{
+    "body":"",
+    "status":"completed/in progress",
+    "progress":"n de 0 a 100",
+    "created":"timestamp"
+    
+},
+
+    "project":{
+        "name":"",
+        "tools":["strings"],
+        "created":"timestamp",
+        "description":"",
+        "githubLink":"",
+        "image":""
+
+    },
+    "competence":{
+        "body":"",
+        "level":"begginer/intermediate/advanced",
+        "progress":"0 a 100",
+        "aquization":"timestamp",
+        "created":"timestamp"
+    }
+}
