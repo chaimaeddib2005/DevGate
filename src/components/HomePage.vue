@@ -2,6 +2,7 @@
   <div class="container">
     
     <aside class="profile">
+      <button @click="LogOut">Log out</button>
       <img :src="userData.photoURL || defaultImage" alt="photo de profil" class="profile-img" />
       <h2>{{ userData.name }}</h2>
       <p>{{ userData.email }}</p>
@@ -82,7 +83,14 @@ function goToFollowings() {
 function goToFollowers() {
    router.push('/followers')
 }
-
+function LogOut() {
+  const auth = getAuth()
+  auth.signOut().then(() => {
+    router.push('/login')
+  }).catch((error) => {
+    console.error('Error signing out: ', error)
+  })
+}
 
 onMounted(async () => {
   const auth = getAuth()

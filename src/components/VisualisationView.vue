@@ -79,7 +79,7 @@
   import {db} from '../firebase';
   import { getDoc, doc } from 'firebase/firestore';
 
-  //import { getAuth } from 'firebase/auth';
+  import { getAuth } from 'firebase/auth';
   
   Chart.register(...registerables);
   
@@ -198,7 +198,8 @@
   
   
       async fetchData() {
-        const userId = "ElqLIzH7MFhsSkB6AijK";
+        const currentUser = getAuth().currentUser;
+        const userId = currentUser.uid;
         try {
           // Get user document first
           const userDoc = await getDoc(doc(db, 'users', userId));

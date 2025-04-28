@@ -18,7 +18,7 @@ import Visualization from '@/components/VisualisationView.vue';
 const routes = [
   { 
     path: '/', 
-    component: HomePage 
+    component: LoginPage
   },
   {
     path:'/visualize',
@@ -38,7 +38,7 @@ const routes = [
  
   },
   {
-    path:'/AddComepetence',
+    path:'/AddCompetence',
     component: AddCompetence
   },
   {

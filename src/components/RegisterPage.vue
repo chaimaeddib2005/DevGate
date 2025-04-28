@@ -61,13 +61,12 @@
         name: name.value,
         email: user.email,
         photoURL: user.photoURL || '',
-        uid: user.uid,
         compétences: [],
         objectifs: [],
-        projets: [],
+        projects: [],
         followers: [],
         followings: [],
-        timeStamp: new Date()
+        joined: new Date()
       })
   
       router.push('/home') // 

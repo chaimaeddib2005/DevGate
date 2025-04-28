@@ -9,8 +9,7 @@
         </button>
         <p>{{ objectif.name }}</p>
         <p>Status: <span>{{ objectif.status }}</span></p>
-        <button v-if="objectif.status === 'completed'">Mark as uncompleted</button>
-        <button v-if="objectif.status === 'in progress'">Mark as completed</button>
+        
   
         <p>Progress:</p>
         <div
@@ -23,8 +22,11 @@
       </div>
   
       <div v-if="editmode">
-        <input type="text" v-model="objectif.body" @keyup.enter="updateObjectif" />
+        <label>Name:</label>
+        <input type="text" v-model="objectif.name" @keyup.enter="updateObjectif" />
+        <label>Status:</label>  
         <input type="text" v-model="objectif.status" @keyup.enter="updateObjectif" />
+        <label>Progress:</label>
         <input type="number" v-model="objectif.progress" @keyup.enter="updateObjectif" min="0" max="100" />
         <button @click="updateObjectif">Save</button>
         <button @click="editmode = false">Cancel</button>
@@ -90,7 +92,7 @@ import {
         try {
           const docRef = doc(db, 'objectifs', this.objectifId);
           await updateDoc(docRef, {
-            body: this.objectif.body,
+            body: this.objectif.name,
             status: this.objectif.status,
             progress: this.objectif.progress,
           });
@@ -126,7 +128,7 @@ import {
           const midfRef = await addDoc(collection(db, 'timeline'), {
             ItemId: objectifId,
             ItemType: 'objectif',
-            Message: 'Deleted objectif: ' + this.objectif.body,
+            Message: 'Deleted objectif: ' + this.objectif.name,
             timestamp: serverTimestamp(),
             type: 'delete',
           });

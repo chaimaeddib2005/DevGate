@@ -2,45 +2,32 @@
     <div v-if="competenceId">
       <div v-if="!editmode" class="competence-card">
         <button @click="deleteCompetence(competenceId)">
-          <i data-eva="trash-2-outline"></i>
+          Delete
         </button>
         <button @click="editmode = !editmode">
-          <i data-eva="edit-outline"></i>
+         Modify
         </button>
   
-        <p>{{ competence.body }}</p>
+        <p>{{ competence.name }}</p>
         <p>Level: <span>{{ competence.level }}</span></p>
   
-        <p>Progress:</p>
-        <div
-          id="progress-bar"
-          :style="{ width: competence.progress + '%', height: '20px', background: '#4caf50' }"
-        ></div>
-        <p id="progress-text">{{ competence.progress }}%</p>
-  
-        <p v-if="competence.aquization">Aquization: {{ formatDate(competence.aquization) }}</p>
-        <p v-if="competence.created">Created: {{ formatDate(competence.created) }}</p>
+        <p v-if="competence.created">Aquization: {{ formatDate(competence.created) }}</p>
       </div>
   
       <div v-if="editmode">
-        <input type="text" v-model="competence.body" @keyup.enter="updateCompetence" />
+        <label>Name:</label>
+        <input type="text" v-model="competence.name" @keyup.enter="updateCompetence" />
+        <label>Level:</label>
         <select v-model="competence.level" @change="updateCompetence">
           <option value="begginer">Beginner</option>
           <option value="intermediate">Intermediate</option>
           <option value="advanced">Advanced</option>
         </select>
-        <input
-          type="number"
-          v-model="competence.progress"
-          @keyup.enter="updateCompetence"
-          min="0"
-          max="100"
-        />
         <button @click="updateCompetence">Save</button>
         <button @click="editmode = false">Cancel</button>
       </div>
     </div>
-  </template>
+  </template> 
   
   <script>
   import {
@@ -96,16 +83,15 @@
   
       async updateCompetence() {
         try {
-          const docRef = doc(db, 'competences', this.competenceId);
+          const docRef = doc(db, 'compétences', this.competenceId);
           await updateDoc(docRef, {
-            body: this.competence.body,
+            name: this.competence.name,
             level: this.competence.level,
-            progress: this.competence.progress,
           });
   
           const timeref = await addDoc(collection(db, 'timeline'), {
             ItemId: this.competenceId,
-            ItemType: 'competence',
+            ItemType: 'compétence',
             Message: 'Updated competence: ' + this.competence.body,
             timestamp: serverTimestamp(),
             type: 'update',
@@ -141,7 +127,7 @@
           type: 'delete',
         });
         await updateDoc(userRef, {
-          competences: arrayRemove(competenceId),
+          compétences: arrayRemove(competenceId),
           timeline: arrayUnion(timeref.id),
         });
       },
