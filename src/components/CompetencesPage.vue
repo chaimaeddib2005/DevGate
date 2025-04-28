@@ -17,8 +17,9 @@
   
   <script>
   import { db } from '@/firebase';
-  import { collection, getDocs } from 'firebase/firestore';
+  import {getDoc } from 'firebase/firestore';
   import CompetenceView from './CompetenceView.vue';
+  import { getAuth } from 'firebase/auth';
   
   export default {
     components: {
@@ -36,11 +37,14 @@
     },
     methods: {
       async getAllDocumentIds() {
+        const user = getAuth().currentUser;
+      
         try {
-          const querySnapshot = await getDocs(collection(db, 'competences'));
-          const ids = querySnapshot.docs.map(doc => doc.id);
-          console.log('Document IDs:', ids);
-          return ids;
+          const userRef = doc(db, 'users', user.uid);
+          const userDoc = await getDoc(userRef);
+          const competences = userDoc.data().competences || [];
+          return competences;
+          
         } catch (error) {
           console.error('Error fetching document IDs:', error);
           return [];

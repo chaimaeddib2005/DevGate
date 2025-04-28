@@ -29,7 +29,9 @@
   
   <script>
   import {db } from '@/firebase';
-  import {collection,addDoc,serverTimestamp} from 'firebase/firestore'
+  import {collection,addDoc,serverTimestamp,arrayUnion,updateDoc} from 'firebase/firestore'
+  import { getAuth } from 'firebase/auth';
+ 
   
   export default {
     data() {
@@ -69,6 +71,11 @@
             Message: 'New project is added: ' + this.project.body,
             timestamp: serverTimestamp(),
             type: 'add',
+          });
+          const user = getAuth().currentUser;
+          const userRef = doc(db, 'users', user.uid);
+          await updateDoc(userRef, {
+            projects: arrayUnion(projectRef.id),
           });
           this.$router.push({ name: 'ProjectsPage' }); // Redirect to project list or details page
         } catch (error) {

@@ -14,7 +14,8 @@
 
 <script>
 import {db } from '@/firebase';
-  import {collection,getDocs} from 'firebase/firestore'
+  import {collection,getDoc} from 'firebase/firestore'
+import { getAuth } from 'firebase/auth';
 import ObjectifView from './ObjectifView.vue';
 
 export default {
@@ -33,11 +34,12 @@ export default {
   },
   methods: {
     async getAllDocumentIds() {
+      const user = getAuth().currentUser;
       try {
-        const querySnapshot = await getDocs(collection(db, 'objectifs'));
-        const ids = querySnapshot.docs.map(doc => doc.id);
-        console.log('Objectif Document IDs:', ids);
-        return ids;
+        const userRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+        const objectifs = userDoc.data().objectifs || []; // Fetch Objectif IDs from user document
+        return objectifs;
       } catch (error) {
         console.error('Error fetching document IDs:', error);
         return [];

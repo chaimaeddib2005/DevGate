@@ -25,8 +25,8 @@
   
   <script>
   import {db } from '@/firebase';
-  import {collection,addDoc,serverTimestamp} from 'firebase/firestore'
-  
+  import {collection,addDoc,serverTimestamp,updateDoc,arrayUnion} from 'firebase/firestore'
+  import { getAuth } from 'firebase/auth';
   
   
   export default {
@@ -52,6 +52,11 @@
             Message: 'New competence is added: ' + this.competence.body,
             timestamp: serverTimestamp(),
             type: 'add',
+          });
+          const user = getAuth().currentUser;
+          const userRef = doc(db, 'users', user.uid);
+          await updateDoc(userRef, {
+            competences: arrayUnion(competenceRef.id),
           });
           this.$router.push({ name: '/Competences' }); // Redirect to competence list or details page
         } catch (error) {

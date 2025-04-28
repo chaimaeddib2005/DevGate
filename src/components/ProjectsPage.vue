@@ -15,7 +15,8 @@
 
 <script>
 import {db } from '@/firebase';
-  import {collection,getDocs} from 'firebase/firestore'
+  import {collection,getDoc} from 'firebase/firestore'
+import { getAuth } from 'firebase/auth';
 import ProjectView from './ProjectView.vue';
 
 export default {
@@ -28,19 +29,20 @@ export default {
     };
   },
   mounted() {
-    this.getAllDocumentIds('projects').then(ids => {
+    this.getAllDocumentIds().then(ids => {
       this.projectIds = ids;
     });
   },
   methods: {
-    async getAllDocumentIds(collectionName) {
+    async getAllDocumentIds() {
+      const user = getAuth().currentUser;
       try {
-        const querySnapshot = await getDocs(collection(db, collectionName));
-        const ids = querySnapshot.docs.map(doc => doc.id);
-        console.log(`${collectionName} Document IDs:`, ids);
-        return ids;
+        const userRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+        const projects = userDoc.data().projects || []; // Fetch Project IDs from user document
+        return projects;
       } catch (error) {
-        console.error(`Error fetching document IDs from ${collectionName}:`, error);
+        console.error('Error fetching document IDs:', error);
         return [];
       }
     },
