@@ -6,11 +6,31 @@ import AddProject from '@/components/AddProject.vue';
 import CompetencesView from '@/components/CompetencesPage.vue';
 import ObjectifsView from '@/components/ObjectifsPage.vue';
 import ProjectsView from '@/components/ProjectsPage.vue';
+import DiscoverView from '@/components/DiscoverView.vue';
+import EditProfile from '@/components/EditProfile.vue';
+import LoginPage from '@/components/LoginPage.vue';
+import FolowersView from '@/components/FolowersView.vue';
+import FolowingsView from '@/components/FolowingsView.vue';
+import RegisterPage from '@/components/RegisterPage.vue';
+import TimeLine from '@/components/TimeLine.vue';
+import Visualization from '@/components/VisualisationView.vue';
 
 const routes = [
   { 
     path: '/', 
     component: HomePage 
+  },
+  {
+    path:'/visualize',
+    component: Visualization
+  },
+  {
+    path: '/home',
+    component: HomePage,
+  },
+  {
+    path: '/timeline',
+    component: TimeLine,
   },
   {
     path: '/Competences',
@@ -40,7 +60,35 @@ const routes = [
   {
     path: '/AddProject', // Full path: /projects/add
     component: AddProject
+  },
+  {
+    path: '/discover',
+    component: DiscoverView,
+  },
+  {
+    path: '/edit-profile',
+    component: EditProfile,
+  },
+  {
+    path:'/folowings',
+    component: FolowingsView,
+
+  },
+  {
+    path:'/folowers',
+    component: FolowersView,
+  },
+  {
+    path: '/login',
+    component: LoginPage,
   }
+ ,
+ {
+  path: '/register',
+  component: RegisterPage,
+ }
+
+  
 ];
 
 const router = createRouter({
