@@ -1,7 +1,7 @@
 <template>
     <div>
         <button>
-          <router-link to="/projects/add">Add Project</router-link>
+          <router-link to="/AddProject">Add Project</router-link>
         </button>
       <!-- For Projects -->
       <div v-if="projectIds.length">
@@ -15,7 +15,7 @@
 
 <script>
 import {db } from '@/firebase';
-  import {collection,getDoc} from 'firebase/firestore'
+  import {doc,getDoc} from 'firebase/firestore'
 import { getAuth } from 'firebase/auth';
 import ProjectView from './ProjectView.vue';
 

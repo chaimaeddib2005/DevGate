@@ -2,12 +2,12 @@
     <div v-if="objectifId">
       <div v-if="!editmode" class="objectif-card">
         <button @click="deleteObjectif(objectifId)">
-          <i data-eva="trash-2-outline"></i>
+         Delete
         </button>
         <button @click="editmode = !editmode">
-          <i data-eva="edit-outline"></i>
+         Edit
         </button>
-        <p>{{ objectif.body }}</p>
+        <p>{{ objectif.name }}</p>
         <p>Status: <span>{{ objectif.status }}</span></p>
         <button v-if="objectif.status === 'completed'">Mark as uncompleted</button>
         <button v-if="objectif.status === 'in progress'">Mark as completed</button>
@@ -44,7 +44,10 @@ import {
     deleteDoc,
     addDoc,
     collection,
-    serverTimestamp,} from 'firebase/firestore';
+    serverTimestamp,
+    arrayRemove,
+    arrayUnion} from 'firebase/firestore';
+    import { getAuth } from 'firebase/auth';
   
   
   export default {
@@ -92,12 +95,17 @@ import {
             progress: this.objectif.progress,
           });
   
-          await addDoc(collection(db, 'timeline'), {
+          const upodateRef = await addDoc(collection(db, 'timeline'), {
             ItemId: this.objectifId,
             ItemType: 'objectif',
             Message: 'New modifications on the objectif ' + this.objectif.body,
             timestamp: serverTimestamp(),
             type: 'update',
+          });
+          const user = getAuth().currentUser;
+          const userRef = doc(db, 'users', user.uid);
+          await updateDoc(userRef, {
+            timeline: arrayUnion(upodateRef.id),
           });
   
           this.editmode = false;
@@ -112,6 +120,21 @@ import {
           const docRef = doc(db, 'objectifs', objectifId);
           await deleteDoc(docRef);
           console.log('Document successfully deleted!');
+          const user = getAuth().currentUser;
+          const userRef = doc(db, 'users', user.uid);
+         
+          const midfRef = await addDoc(collection(db, 'timeline'), {
+            ItemId: objectifId,
+            ItemType: 'objectif',
+            Message: 'Deleted objectif: ' + this.objectif.body,
+            timestamp: serverTimestamp(),
+            type: 'delete',
+          });
+          await updateDoc(userRef, {
+            objectifs: arrayRemove(objectifId),
+            timeline: arrayUnion(midfRef.id),
+          });
+
         } catch (error) {
           console.error('Error removing document:', error);
         }

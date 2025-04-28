@@ -54,8 +54,10 @@
     deleteDoc,
     addDoc,
     collection,
-    serverTimestamp,} from 'firebase/firestore';
-  
+    serverTimestamp,
+    arrayRemove,
+    arrayUnion} from 'firebase/firestore';
+  import { getAuth } from 'firebase/auth';
   export default {
     props: {
       competenceId: {
@@ -101,12 +103,17 @@
             progress: this.competence.progress,
           });
   
-          await addDoc(collection(db, 'timeline'), {
+          const timeref = await addDoc(collection(db, 'timeline'), {
             ItemId: this.competenceId,
             ItemType: 'competence',
             Message: 'Updated competence: ' + this.competence.body,
             timestamp: serverTimestamp(),
             type: 'update',
+          });
+          const currentUser = getAuth().currentUser;
+          const userRef = doc(db, 'users', currentUser.uid);
+          updateDoc(userRef, {
+            timeline: arrayUnion(timeref.id),
           });
   
           this.editmode = false;
@@ -118,12 +125,25 @@
   
       async deleteCompetence(competenceId) {
         try {
-          const docRef = doc(db, 'competences', competenceId);
+          const docRef = doc(db, 'compétences', competenceId);
           await deleteDoc(docRef);
           console.log('Competence successfully deleted!');
         } catch (error) {
           console.error('Error deleting competence:', error);
         }
+        const currentUser = getAuth().currentUser;
+        const userRef = doc(db, 'users', currentUser.uid);
+        const timeref = await addDoc(collection(db, 'timeline'), {
+          ItemId: competenceId,
+          ItemType: 'competence',
+          Message: 'Deleted competence: ' + this.competence.body,
+          timestamp: serverTimestamp(),
+          type: 'delete',
+        });
+        await updateDoc(userRef, {
+          competences: arrayRemove(competenceId),
+          timeline: arrayUnion(timeref.id),
+        });
       },
   
       formatDate(timestamp) {

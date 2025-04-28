@@ -15,32 +15,31 @@ const routes = [
   {
     path: '/Competences',
     component: CompetencesView,
-    children: [
-      {
-        path: 'add', // Full path: /competences/add
-        component: AddCompetence
-      }
-    ]
+ 
+  },
+  {
+    path:'/AddComepetence',
+    component: AddCompetence
   },
   {
     path: '/objectifs',
     component: ObjectifsView,
-    children: [
-      {
-        path: 'add', // Full path: /objectifs/add
-        component: AddObjectif
-      }
-    ]
+  
   },
+  
+    {
+      path: '/AddObjectif', // Full path: /objectifs/add
+      component: AddObjectif
+    }
+  ,
   {
     path: '/projects',
     component: ProjectsView,
-    children: [
-      {
-        path: 'add', // Full path: /projects/add
-        component: AddProject
-      }
-    ]
+   
+  },
+  {
+    path: '/AddProject', // Full path: /projects/add
+    component: AddProject
   }
 ];
 

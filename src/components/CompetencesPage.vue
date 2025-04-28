@@ -1,7 +1,7 @@
 <template>
     <div>
       <button>
-        <router-link to="/competences/add">Add Competence</router-link>
+        <router-link to="/AddCompetence">Add Competence</router-link>
       </button>
       
       <div v-if="documentIds.length">
@@ -17,7 +17,7 @@
   
   <script>
   import { db } from '@/firebase';
-  import {getDoc } from 'firebase/firestore';
+  import {getDoc,doc } from 'firebase/firestore';
   import CompetenceView from './CompetenceView.vue';
   import { getAuth } from 'firebase/auth';
   
@@ -37,12 +37,11 @@
     },
     methods: {
       async getAllDocumentIds() {
-        const user = getAuth().currentUser;
-      
-        try {
+      const user = getAuth().currentUser;
+      try {
           const userRef = doc(db, 'users', user.uid);
           const userDoc = await getDoc(userRef);
-          const competences = userDoc.data().competences || [];
+          const competences = userDoc.data().compétences || [];
           return competences;
           
         } catch (error) {

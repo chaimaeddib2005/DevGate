@@ -25,7 +25,7 @@
   
   <script>
   import {db } from '@/firebase';
-  import {collection,addDoc,serverTimestamp,updateDoc,arrayUnion} from 'firebase/firestore'
+  import {collection,addDoc,serverTimestamp,updateDoc,arrayUnion,doc} from 'firebase/firestore'
   import { getAuth } from 'firebase/auth';
   
   
@@ -44,11 +44,11 @@
     methods: {
       async addCompetence() {
         try {
-          const competenceRef = await addDoc(collection(db, 'competences'), this.competence);
+          const competenceRef = await addDoc(collection(db, 'compétences'), this.competence);
           console.log('Competence added with ID: ', competenceRef.id);
-          await addDoc(collection(db, 'timeline'), {
+          const timeref = await addDoc(collection(db, 'timeline'), {
             ItemId: competenceRef.id,
-            ItemType: 'competence',
+            ItemType: 'compétence',
             Message: 'New competence is added: ' + this.competence.body,
             timestamp: serverTimestamp(),
             type: 'add',
@@ -57,6 +57,7 @@
           const userRef = doc(db, 'users', user.uid);
           await updateDoc(userRef, {
             competences: arrayUnion(competenceRef.id),
+            timeline: arrayUnion(timeref.id),
           });
           this.$router.push({ name: '/Competences' }); // Redirect to competence list or details page
         } catch (error) {

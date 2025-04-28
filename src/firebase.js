@@ -5,12 +5,12 @@ import { getAuth } from 'firebase/auth';            // Correct import for Auth i
 import { getStorage } from 'firebase/storage';      // Correct import for Storage in v9+
 
 const firebaseConfig = {
-  apiKey: 'YOUR_API_KEY',
-  authDomain: 'YOUR_AUTH_DOMAIN',
-  projectId: 'YOUR_PROJECT_ID',
-  storageBucket: 'YOUR_STORAGE_BUCKET',
-  messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-  appId: 'YOUR_APP_ID',
+  apiKey: "AIzaSyDy7xbLF4eIjdcX5AdwocDbBYyIzoEUHAI",
+  authDomain: "devgate-87bab.firebaseapp.com",
+  projectId: "devgate-87bab",
+  storageBucket: "devgate-87bab.firebasestorage.app",
+  messagingSenderId: "561166388901",
+  appId: "1:561166388901:web:099e7956b2f597e451074c"
 };
 
 // Initialize Firebase

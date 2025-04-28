@@ -40,7 +40,11 @@ import {
     deleteDoc,
     addDoc,
     collection,
-    serverTimestamp,} from 'firebase/firestore';
+    serverTimestamp,
+    arrayRemove,
+    arrayUnion}  from 'firebase/firestore';
+  import { getAuth } from 'firebase/auth';
+   
 
   
   export default {
@@ -124,14 +128,18 @@ import {
             },
           });
   
-          await addDoc(collection(db, 'timeline'), {
+          const timeref = await addDoc(collection(db, 'timeline'), {
             ItemId: this.projectId,
             ItemType: 'project',
             Message: 'Project updated: ' + this.project.name,
             timestamp: serverTimestamp(),
             type: 'update',
           });
-  
+          const currentUser = getAuth().currentUser;
+          const userRef = doc(db, 'users', currentUser.uid);
+          await updateDoc(userRef, {
+            timeline: arrayUnion(timeref.id),
+          });
           this.editmode = false;
           console.log('Project updated!');
         } catch (error) {
@@ -144,7 +152,19 @@ import {
           const ref = doc(db, 'projects', id);
           await deleteDoc(ref);
           console.log('Project deleted');
-  
+          const timeref = await addDoc(collection(db, 'timeline'), {
+            ItemId: id,
+            ItemType: 'project',
+            Message: 'Project deleted: ' + this.project.name,
+            timestamp: serverTimestamp(),
+            type: 'delete',
+          });
+          const currentUser = getAuth().currentUser;
+          const userRef = doc(db, 'users', currentUser.uid);
+          await updateDoc(userRef, {
+            projects: arrayRemove(id),
+            timeline: arrayUnion(timeref.id),
+          });
           // Emit event to parent if needed
           this.$emit('deleted', id);
         } catch (error) {

@@ -24,7 +24,7 @@
   
   <script>
  import {db } from '@/firebase';
-  import {collection,addDoc,serverTimestamp,arrayUnion,updateDoc} from 'firebase/firestore'
+  import {collection,addDoc,serverTimestamp,arrayUnion,updateDoc,doc} from 'firebase/firestore'
   import { getAuth } from 'firebase/auth';
 
   
@@ -32,7 +32,7 @@
     data() {
       return {
         objectif: {
-          body: '',
+          name: '',
           status: 'in progress',
           progress: 0,
           created: serverTimestamp(),
@@ -44,7 +44,7 @@
         try {
           const objectifRef = await addDoc(collection(db, 'objectifs'), this.objectif);
           console.log('Objectif added with ID: ', objectifRef.id);
-          await addDoc(collection(db, 'timeline'), {
+          const timeref = await addDoc(collection(db, 'timeline'), {
             ItemId: objectifRef.id,
             ItemType: 'objectif',
             Message: 'New objectif is added: ' + this.objectif.body,
@@ -55,6 +55,7 @@
           const userRef = doc(db, 'users', user.uid);
           await updateDoc(userRef, {
             objectifs: arrayUnion(objectifRef.id),
+            timeline : arrayUnion(timeref.id),
           });
           this.$router.push({ name: 'ObjectifsPage' }); // Redirect to objectif list or details page
         } catch (error) {

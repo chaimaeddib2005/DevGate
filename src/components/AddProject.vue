@@ -29,7 +29,7 @@
   
   <script>
   import {db } from '@/firebase';
-  import {collection,addDoc,serverTimestamp,arrayUnion,updateDoc} from 'firebase/firestore'
+  import {collection,addDoc,serverTimestamp,arrayUnion,updateDoc,doc} from 'firebase/firestore'
   import { getAuth } from 'firebase/auth';
  
   
@@ -65,7 +65,7 @@
         try {
           const projectRef = await addDoc(collection(db, 'projects'), this.project);
           console.log('Project added with ID: ', projectRef.id);
-          await addDoc(collection(db, 'timeline'), {
+          const timeref = await addDoc(collection(db, 'timeline'), {
             ItemId: projectRef.id,
             ItemType: 'project',
             Message: 'New project is added: ' + this.project.body,
@@ -76,6 +76,7 @@
           const userRef = doc(db, 'users', user.uid);
           await updateDoc(userRef, {
             projects: arrayUnion(projectRef.id),
+            timeline: arrayUnion(timeref.id),
           });
           this.$router.push({ name: 'ProjectsPage' }); // Redirect to project list or details page
         } catch (error) {
