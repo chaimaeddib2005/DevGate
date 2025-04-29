@@ -1,142 +1,234 @@
 <template>
-  <div class="add-competence">
-      <h2>Add New Competence</h2>
-      <form @submit.prevent="addCompetence" class="competence-form">
-          <div class="form-group">
-              <label for="body">Competence Body</label>
-              <textarea v-model="competence.name" id="body" required class="form-input"></textarea>
-          </div>
-          <div class="form-group">
-              <label for="level">Level</label>
-              <select v-model="competence.level" id="level" required class="form-input">
-                  <option value="beginner">Beginner</option>
-                  <option value="intermediate">Intermediate</option>
-                  <option value="advanced">Advanced</option>
-              </select>
-          </div>
-          
-          <button type="submit" class="submit-button">Save Competence</button>
-      </form>
+  <div class="cyber-add-competence">
+    <router-link to="/Competences" class="btn back-btn">
+      <i class="fas fa-arrow-left"></i> Back
+    </router-link>
+
+    <h2>Add New Competence</h2>
+    <form @submit.prevent="addCompetence" class="cyber-competence-form">
+      <div class="cyber-form-group">
+        <label for="body" class="cyber-label">Competence Body</label>
+        <textarea v-model="competence.name" id="body" required class="cyber-form-input"></textarea>
+      </div>
+      <div class="cyber-form-group">
+        <label for="level" class="cyber-label">Level</label>
+        <select v-model="competence.level" id="level" required class="cyber-form-input">
+          <option value="beginner">Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
+        </select>
+      </div>
+
+      <button type="submit" class="cyber-submit-button">Save Competence</button>
+    </form>
   </div>
 </template>
 
 <script>
 /* Script remains exactly the same */
-import {db } from '@/firebase';
-import {collection,addDoc,serverTimestamp,updateDoc,arrayUnion,doc} from 'firebase/firestore'
+import { db } from '@/firebase';
+import { collection, addDoc, serverTimestamp, updateDoc, arrayUnion, doc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-
 
 export default {
   data() {
-      return {
-          competence: {
-              name: '',
-              level: 'beginner',
-              created: serverTimestamp(),
-          },
-      };
+    return {
+      competence: {
+        name: '',
+        level: 'beginner',
+        created: serverTimestamp(),
+      },
+    };
   },
   methods: {
-      async addCompetence() {
-          try {
-              const competenceRef = await addDoc(collection(db, 'compétences'), this.competence);
-              console.log('Competence added with ID: ', competenceRef.id);
-              const timeref = await addDoc(collection(db, 'timeline'), {
-                  ItemId: competenceRef.id,
-                  ItemType: 'compétence',
-                  Message: 'New competence is added: ' + this.competence.name,
-                  timestamp: serverTimestamp(),
-                  type: 'add',
-              });
-              const user = getAuth().currentUser;
-              const userRef = doc(db, 'users', user.uid);
-              await updateDoc(userRef, {
-                  compétences: arrayUnion(competenceRef.id),
-                  timeline: arrayUnion(timeref.id),
-              });
-              this.$router.push('/Competences' ); // Redirect to competence list or details page
-          } catch (error) {
-              console.error('Error adding competence: ', error);
-          }
-      },
+    async addCompetence() {
+      try {
+        const competenceRef = await addDoc(collection(db, 'compétences'), this.competence);
+        console.log('Competence added with ID: ', competenceRef.id);
+        const timeref = await addDoc(collection(db, 'timeline'), {
+          ItemId: competenceRef.id,
+          ItemType: 'compétence',
+          Message: 'New competence is added: ' + this.competence.name,
+          timestamp: serverTimestamp(),
+          type: 'add',
+        });
+        const user = getAuth().currentUser;
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, {
+          compétences: arrayUnion(competenceRef.id),
+          timeline: arrayUnion(timeref.id),
+        });
+        this.$router.push('/Competences'); // Redirect to competence list
+      } catch (error) {
+        console.error('Error adding competence: ', error);
+      }
+    },
   },
 };
 </script>
 
 <style scoped>
-.add-competence {
+/* Cyber/Developer Theme Styles for Add Competence */
+.cyber-add-competence {
   max-width: 600px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-family: 'Arial', sans-serif;
+  margin: 2rem auto;
+  padding: 2.5rem;
+  position: relative;
+  z-index: 1;
+  background: rgba(10, 10, 20, 0.7);
+  border: 1px solid rgba(0, 102, 255, 0.4);
+  box-shadow: 0 0 30px rgba(0, 102, 255, 0.2);
 }
 
-h2 {
-  color: #2c3e50;
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.2rem;
+  text-decoration: none;
+  font-family: 'Roboto Mono', monospace;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+  border-radius: 0;
+  background: rgba(50, 50, 50, 0.7);
+  color: #eee;
+  border: 1px solid #777;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s;
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 10; /* Ensure it's above other elements */
+}
+
+.back-btn:hover {
+  background: rgba(70, 70, 70, 0.9);
+  text-shadow: none;
+  animation: none;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.cyber-add-competence h2 {
+  color: #00a2ff;
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-shadow: 0 0 5px rgba(0, 102, 255, 0.6);
+  padding-top: 2rem; /* Add some top padding to avoid overlap */
 }
 
-.competence-form {
-  background-color: #f9f9f9;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.cyber-competence-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
 
-.form-group {
-  margin-bottom: 1.5rem;
+.cyber-form-group {
+  position: relative;
 }
 
-label {
+.cyber-label {
   display: block;
   margin-bottom: 0.5rem;
+  color: #eee;
   font-weight: 600;
-  color: #2c3e50;
+  text-shadow: 0 0 3px rgba(0, 102, 255, 0.5);
 }
 
-.form-input {
+.cyber-form-input {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 0.8rem;
+  border: 1px solid #0066ff;
+  border-radius: 0;
+  background-color: rgba(20, 20, 30, 0.8);
+  color: #fff;
+  font-family: 'Roboto Mono', monospace;
   font-size: 1rem;
-  transition: border-color 0.3s;
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-.form-input:focus {
+.cyber-form-input:focus {
   outline: none;
-  border-color: #4CAF50;
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  border-color: #00a2ff;
+  box-shadow: 0 0 10px rgba(0, 102, 255, 0.7);
 }
 
-textarea.form-input {
-  min-height: 100px;
+textarea.cyber-form-input {
+  min-height: 120px;
   resize: vertical;
 }
 
-select.form-input {
+select.cyber-form-input {
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300a2ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   background-size: 1rem;
 }
 
-.submit-button {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  border-radius: 4px;
+.cyber-submit-button {
+  background-color: rgba(0, 102, 255, 0.2);
+  color: #00a2ff;
+  border: 2px solid #0066ff;
+  padding: 0.9rem 2rem;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border-radius: 0;
   cursor: pointer;
-  width: 100%;
-  transition: background-color 0.3s;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.submit-button:hover {
-  background-color: #45a049;
+.cyber-submit-button:hover {
+  background: rgba(0, 102, 255, 0.4);
+  text-shadow: 0 0 10px rgba(0, 102, 255, 0.8);
+  box-shadow: 0 0 15px rgba(0, 102, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.cyber-submit-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 102, 255, 0.5), transparent);
+  transition: 0.5s;
+}
+
+.cyber-submit-button:hover::before {
+  left: 100%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .cyber-add-competence {
+    padding: 1.5rem;
+  }
+
+  .back-btn {
+    position: static;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .cyber-add-competence h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    padding-top: 0;
+  }
+
+  .cyber-form-input,
+  .cyber-submit-button {
+    padding: 0.7rem;
+    font-size: 0.9rem;
+  }
 }
 </style>

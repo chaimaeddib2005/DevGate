@@ -1,16 +1,19 @@
 <template>
-  <div class="competence-container">
-    <button class="add-button">
-      <router-link to="/AddCompetence" class="add-link">Add Competence</router-link>
-    </button>
-    
-    <div v-if="documentIds.length" class="competence-list">
-      <div v-for="id in documentIds" :key="id" class="competence-item">
+  <div class="competence-list-container">
+    <router-link to="/home" class="btn back-btn">
+      <i class="fas fa-arrow-left"></i> Back
+    </router-link>
+
+    <router-link to="/AddCompetence" class="btn add-competence-btn">
+      <i class="fas fa-plus"></i> Add Competence
+    </router-link>
+
+    <div v-if="documentIds.length" class="competence-grid">
+      <div v-for="id in documentIds" :key="id" class="competence-card-wrapper">
         <CompetenceView :competenceId="id" />
       </div>
     </div>
 
-    <!-- Make sure you have a router-view for nested routes -->
     <router-view></router-view>
   </div>
 </template>
@@ -18,94 +21,165 @@
 <script>
 /* Script remains exactly the same */
 import { db } from '@/firebase';
-import {getDoc,doc } from 'firebase/firestore';
+import { getDoc, doc } from 'firebase/firestore';
 import CompetenceView from './CompetenceView.vue';
 import { getAuth } from 'firebase/auth';
 
 export default {
   components: {
-      CompetenceView,
+    CompetenceView,
   },
   data() {
-      return {
-          documentIds: [],
-         
-      };
+    return {
+      documentIds: [],
+    };
   },
   mounted() {
-      this.getAllDocumentIds().then(ids => {
-          this.documentIds = ids;
-      });
+    this.getAllDocumentIds().then((ids) => {
+      this.documentIds = ids;
+    });
   },
   methods: {
-      async getAllDocumentIds() {
-        
+    async getAllDocumentIds() {
       const user = getAuth().currentUser;
       console.log(user);
       try {
-          const userRef = doc(db, 'users', user.uid);
-          const userDoc = await getDoc(userRef);
-          const competences = userDoc.data().compétences || [];
-          return competences;
-          
-          } catch (error) {
-              console.error('Error fetching document IDs:', error);
-              return [];
-          }
-      },
+        const userRef = doc(db, 'users', user.uid);
+        const userDoc = await getDoc(userRef);
+        const competences = userDoc.data().compétences || [];
+        return competences;
+      } catch (error) {
+        console.error('Error fetching document IDs:', error);
+        return [];
+      }
+    },
   },
 };
 </script>
 
 <style scoped>
-.competence-container {
+/* Cyber/Developer Theme Styles */
+.competence-list-container {
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
-  font-family: 'Arial', sans-serif;
+  padding: 2rem;
+  position: relative;
+  z-index: 1;
 }
 
-.add-button {
-  background-color: #4CAF50;
-  border: none;
-  color: white;
-  padding: 10px 20px;
-  text-align: center;
+.back-btn,
+.add-competence-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
   text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 10px 0;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background-color 0.3s;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s;
+  border-radius: 0;
 }
 
-.add-button:hover {
-  background-color: #45a049;
+.back-btn {
+  background: rgba(50, 50, 50, 0.7);
+  color: #eee;
+  border: 2px solid #777;
+  margin-right: 1rem;
 }
 
-.add-link {
-  color: white;
-  text-decoration: none;
-}
-
-.competence-list {
-  margin-top: 30px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.competence-item {
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  padding: 15px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.2s;
-}
-
-.competence-item:hover {
+.back-btn:hover {
+  background: rgba(70, 70, 70, 0.9);
+  text-shadow: none;
+  animation: none;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.add-competence-btn {
+  background: rgba(0, 102, 255, 0.2);
+  color: #00a2ff;
+  border: 2px solid #0066ff;
+}
+
+.add-competence-btn:hover {
+  background: rgba(0, 102, 255, 0.3);
+  text-shadow: 0 0 8px rgba(0, 102, 255, 0.7);
+  animation: glitch 0.5s linear infinite;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 102, 255, 0.3);
+}
+
+.competence-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.competence-card-wrapper {
+  background: rgba(20, 20, 30, 0.7);
+  border: 1px solid #0066ff;
+  position: relative;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);
+}
+
+.competence-card-wrapper:hover {
+  box-shadow: 0 0 25px rgba(0, 102, 255, 0.5);
+  transform: translateY(-5px);
+}
+
+.competence-card-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, transparent 48%, rgba(0, 102, 255, 0.1) 50%, transparent 52%);
+  background-size: 5px 5px;
+  opacity: 0.5;
+}
+
+/* Glitch animation */
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+  }
+  20% {
+    transform: translate(-2px, 2px);
+  }
+  40% {
+    transform: translate(-2px, -2px);
+  }
+  60% {
+    transform: translate(2px, 2px);
+  }
+  80% {
+    transform: translate(2px, -2px);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .competence-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .competence-list-container {
+    padding: 1rem;
+  }
+
+  .back-btn,
+  .add-competence-btn {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 1rem;
+    justify-content: center;
+  }
 }
 </style>

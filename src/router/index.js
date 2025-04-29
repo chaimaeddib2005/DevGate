@@ -7,7 +7,7 @@ import CompetencesView from '@/components/CompetencesPage.vue';
 import ObjectifsView from '@/components/ObjectifsPage.vue';
 import ProjectsView from '@/components/ProjectsPage.vue';
 import DiscoverView from '@/components/DiscoverView.vue';
-import EditProfile from '@/components/EditProfile.vue';
+import EditProfile from '@/components/ProfilePage.vue';
 import LoginPage from '@/components/LoginPage.vue';
 import FolowersView from '@/components/FolowersView.vue';
 import FolowingsView from '@/components/FolowingsView.vue';
@@ -67,15 +67,15 @@ const routes = [
   },
   {
     path: '/edit-profile',
-    component: EditProfile,
+    component:EditProfile,
   },
   {
-    path:'/folowings',
+    path:'/followings',
     component: FolowingsView,
 
   },
   {
-    path:'/folowers',
+    path:'/followers',
     component: FolowersView,
   },
   {

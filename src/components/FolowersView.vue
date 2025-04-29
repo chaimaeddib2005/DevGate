@@ -1,52 +1,215 @@
 <template>
-    <div class="min-h-screen bg-gray-100 p-6">
-      <h1 class="text-3xl font-bold mb-8">Mes Followers</h1>
-  
-      <div v-if="loading" class="text-center">Chargement...</div>
-  
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div v-for="user in followerUsers" :key="user.id" class="bg-white p-6 rounded-2xl shadow-md flex flex-col items-center">
-          <img :src="user.photoURL || defaultImage" alt="photo" class="w-20 h-20 rounded-full object-cover mb-4" />
-          <h2 class="text-xl font-semibold">{{ user.name }}</h2>
-          <p class="text-gray-500 text-sm">{{ user.email }}</p>
+  <div class="cyber-followers-container">
+    <div class="cyber-controls">
+      <router-link to="/home" class="btn back-btn">
+        <i class="fas fa-arrow-left"></i> GO BACK
+      </router-link>
+    </div>
+    <h1 class="cyber-followers-title">Mes Followers</h1>
+
+    <div v-if="loading" class="cyber-loading-message">Chargement...</div>
+
+    <div v-else-if="followerUsers.length === 0" class="cyber-no-followers-message">
+      <p>Vous n'avez pas encore de followers.</p>
+    </div>
+
+    <div v-else class="cyber-user-grid">
+      <div v-for="user in followerUsers" :key="user.id" class="cyber-user-card">
+        <div class="cyber-user-image-wrapper">
+          <img
+            :src="user.photoURL || defaultImage"
+            alt="Photo de profil"
+            class="cyber-user-image"
+          />
         </div>
+        <h2 class="cyber-user-name">{{ user.name }}</h2>
+        <p class="cyber-user-email">{{ user.email }}</p>
       </div>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, onMounted } from 'vue'
-  import { getAuth } from 'firebase/auth'
-  import { db } from '@/firebase'
-  import {getDoc, doc} from 'firebase/firestore'
-  
-  const followerUsers = ref([])
-  const loading = ref(true)
-  const defaultImage = 'https://via.placeholder.com/150'
-  
-  onMounted(async () => {
-    const auth = getAuth()
-    const user = auth.currentUser
-  
-    if (user) {
-      const userRef = doc(db, 'users', user.uid)
-      const userSnap = await getDoc(userRef)
-  
-      if (userSnap.exists()) {
-        const followers = userSnap.data().followers || []
-  
-        if (followers.length > 0) {
-          const promises = followers.map(uid => getDoc(doc(db, 'users', uid)))
-          const results = await Promise.all(promises)
-  
-          followerUsers.value = results
-            .filter(snap => snap.exists())
-            .map(snap => ({ id: snap.id, ...snap.data() }))
-        }
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import { getAuth } from 'firebase/auth';
+import { db } from '@/firebase';
+import { getDoc, doc } from 'firebase/firestore';
+
+const followerUsers = ref([]);
+const loading = ref(true);
+const defaultImage = 'https://via.placeholder.com/150';
+
+onMounted(async () => {
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  if (user) {
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+
+    if (userSnap.exists()) {
+      const followers = userSnap.data().followers || [];
+
+      if (followers.length > 0) {
+        const promises = followers.map(uid => getDoc(doc(db, 'users', uid)));
+        const results = await Promise.all(promises);
+
+        followerUsers.value = results
+          .filter(snap => snap.exists())
+          .map(snap => ({ id: snap.id, ...snap.data() }));
       }
     }
-  
-    loading.value = false
-  })
-  </script>
-  
+  }
+
+  loading.value = false;
+});
+</script>
+
+<style scoped>
+/* Cyber/Developer Theme Styles for My Followers */
+.cyber-followers-container {
+  padding: 2rem;
+  background: rgba(10, 10, 20, 0.7);
+  border: 1px solid rgba(0, 102, 255, 0.3);
+  box-shadow: 0 0 30px rgba(0, 102, 255, 0.1);
+  min-height: 100vh;
+}
+
+.cyber-controls {
+  display: flex;
+  margin-bottom: 2rem;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
+  text-decoration: none;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  letter-spacing: 1px;
+  transition: all 0.3s;
+  border-radius: 0;
+  background: rgba(50, 50, 50, 0.7);
+  color: #eee;
+  border: 2px solid #777;
+  margin-right: 1rem;
+}
+
+.back-btn:hover {
+  background: rgba(70, 70, 70, 0.9);
+  text-shadow: none;
+  animation: none;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.cyber-followers-title {
+  color: #00a2ff;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cyber-loading-message {
+  color: #eee;
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 1.2rem;
+}
+
+.cyber-no-followers-message {
+  color: #eee;
+  text-align: center;
+  margin-top: 2rem;
+  font-size: 1.2rem;
+}
+
+.cyber-user-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.cyber-user-card {
+  background: rgba(20, 20, 30, 0.9);
+  padding: 2rem;
+  border: 1px solid #0066ff;
+  border-radius: 0;
+  box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.cyber-user-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 25px rgba(0, 102, 255, 0.5);
+}
+
+.cyber-user-image-wrapper {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 1rem;
+  border: 3px solid #00a2ff;
+  box-shadow: 0 0 10px rgba(0, 102, 255, 0.5);
+}
+
+.cyber-user-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cyber-user-name {
+  color: #eee;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.cyber-user-email {
+  color: #aaa;
+  font-size: 0.9rem;
+  font-family: 'Roboto Mono', monospace;
+  margin-bottom: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .cyber-followers-container {
+    padding: 1.5rem;
+  }
+
+  .cyber-user-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cyber-user-card {
+    padding: 1.5rem;
+  }
+}
+
+/* Tablet styles */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .cyber-user-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop styles */
+@media (min-width: 1025px) {
+  .cyber-user-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+</style>
