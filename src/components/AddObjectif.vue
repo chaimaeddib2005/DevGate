@@ -4,7 +4,7 @@
       <form @submit.prevent="addObjectif">
         <div>
           <label for="body">Objectif Body</label>
-          <textarea v-model="objectif.body" id="body" required></textarea>
+          <textarea v-model="objectif.name" id="body" required></textarea>
         </div>
         <div>
           <label for="status">Status</label>
@@ -57,7 +57,7 @@
             objectifs: arrayUnion(objectifRef.id),
             timeline : arrayUnion(timeref.id),
           });
-          this.$router.push({ name: 'ObjectifsPage' }); // Redirect to objectif list or details page
+          this.$router.push('/objectifs'); // Redirect to objectif list or details page
         } catch (error) {
           console.error('Error adding objectif: ', error);
         }

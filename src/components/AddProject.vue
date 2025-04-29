@@ -78,7 +78,7 @@
             projects: arrayUnion(projectRef.id),
             timeline: arrayUnion(timeref.id),
           });
-          this.$router.push({ name: 'ProjectsPage' }); // Redirect to project list or details page
+          this.$router.push('/projects'); // Redirect to project list or details page
         } catch (error) {
           console.error('Error adding project: ', error);
         }

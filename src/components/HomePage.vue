@@ -69,10 +69,10 @@
   const defaultImage = 'https://via.placeholder.com/150'
   
   const navItems = [
-  { title: 'Compétences', route: '/skills', icon: 'fas fa-tools', description: 'Gérez vos compétences.' },
+  { title: 'Compétences', route: '/Competences', icon: 'fas fa-tools', description: 'Gérez vos compétences.' },
   { title: 'Projets', route: '/projects', icon: 'fas fa-rocket', description: 'Partagez vos projets.' },
   { title: 'Activité', route: '/timeline', icon: 'fas fa-chart-line', description: 'Suivez votre activité.' },
-  { title: 'Objectifs', route: '/objectives', icon: 'fas fa-bullseye', description: 'Atteignez vos objectifs.' },
+  { title: 'Objectifs', route: '/objectifs', icon: 'fas fa-bullseye', description: 'Atteignez vos objectifs.' },
   {title:'Visualization',route:'/visualize',icon:'fas fa-eye',description:'visualize you progress'}
 ]
 

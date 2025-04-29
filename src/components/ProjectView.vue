@@ -2,10 +2,10 @@
     <div v-if="projectId">
       <div v-if="!editmode" class="project-card">
         <button @click="deleteProject(projectId)">
-          <i data-eva="trash-2-outline"></i>
+          Delete
         </button>
         <button @click="editmode = !editmode">
-          <i data-eva="edit-outline"></i>
+          Edit
         </button>
   
         <h2>{{ project.name }}</h2>
@@ -69,6 +69,7 @@ import {
       if (this.projectId) {
         this.fetchProject();
       }
+      console.log('Project ID:', this.project);
     },
   
     watch: {
@@ -105,10 +106,12 @@ import {
         try {
           const ref = doc(db, 'projects', this.projectId);
           const snap = await getDoc(ref);
+          console.log(snap.data());
           if (snap.exists()) {
             const data = snap.data();
-            this.project = data.project;
+            this.project = data;
             this.toolsInput = this.project.tools.join(', ');
+            
           } else {
             console.log('No such document!');
           }

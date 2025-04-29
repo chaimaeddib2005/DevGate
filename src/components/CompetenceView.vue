@@ -8,7 +8,7 @@
          Modify
         </button>
   
-        <p>{{ competence.name }}</p>
+        <p>Body:<span>{{competence.name}}</span></p>
         <p>Level: <span>{{ competence.level }}</span></p>
   
         <p v-if="competence.created">Aquization: {{ formatDate(competence.created) }}</p>
@@ -69,7 +69,7 @@
     methods: {
       async fetchCompetence() {
         try {
-          const docRef = doc(db, 'competences', this.competenceId);
+          const docRef = doc(db, 'compétences', this.competenceId);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             this.competence = docSnap.data();
@@ -118,11 +118,12 @@
           console.error('Error deleting competence:', error);
         }
         const currentUser = getAuth().currentUser;
+        console.log(currentUser);
         const userRef = doc(db, 'users', currentUser.uid);
         const timeref = await addDoc(collection(db, 'timeline'), {
           ItemId: competenceId,
           ItemType: 'competence',
-          Message: 'Deleted competence: ' + this.competence.body,
+          Message: 'Deleted competence: ' + this.competence.name,
           timestamp: serverTimestamp(),
           type: 'delete',
         });
@@ -130,6 +131,7 @@
           compétences: arrayRemove(competenceId),
           timeline: arrayUnion(timeref.id),
         });
+        window.location.reload();
       },
   
       formatDate(timestamp) {

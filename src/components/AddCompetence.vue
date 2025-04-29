@@ -45,7 +45,7 @@ export default {
               const timeref = await addDoc(collection(db, 'timeline'), {
                   ItemId: competenceRef.id,
                   ItemType: 'compétence',
-                  Message: 'New competence is added: ' + this.competence.body,
+                  Message: 'New competence is added: ' + this.competence.name,
                   timestamp: serverTimestamp(),
                   type: 'add',
               });
