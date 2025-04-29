@@ -7,10 +7,10 @@
       class="event"
     >
       <div class="eventInfo">
-        <strong>{{ event.type }}</strong><br>
         <strong>{{ event.message }}</strong><br>
         <strong>{{ event.timestamp ? event.timestamp.toLocaleString() : '' }}</strong>
       </div>
+      <hr />
     </div>
   </div>
 </template>
@@ -24,6 +24,9 @@ export default {
             events: [],
             userReady: false,
         };
+    },
+    async mounted(){
+        this.fetchEvents();
     },
     async created() {
     const auth = getAuth();
@@ -64,6 +67,7 @@ methods: {
 
     // 2. Fetch events from the timeline collection using the IDs
     const eventsArray = [];
+
     
     // Fetch each timeline document by ID
     for (const timelineId of timelineIds) {
@@ -77,7 +81,7 @@ methods: {
           id: timelineSnap.id,
           itemId: eventData.itemId || '',
           itemType: eventData.itemType || '',
-          message: eventData.message || '',
+          message: eventData.Message || '',
           timestamp: eventData.timestamp?.toDate() || null,
           type: eventData.type || '',
         });
