@@ -11,7 +11,7 @@
     </div>
     <div v-if="documentIds.length" class="cyber-objectif-list">
       <div v-for="id in documentIds" :key="id" class="cyber-objectif-card-wrapper">
-        <objectifView :objectifId="id" :isOwner="isOwner"/>
+        <objectifView @deleted="handleCompetenceDeleted" :objectifId="id" :isOwner="isOwner" />
       </div>
     </div>
     <div v-else class="cyber-empty-message">
@@ -50,6 +50,11 @@ export default {
   });
 },
   methods: {
+    handleCompetenceDeleted(deletedId) {
+ 
+ this.documentIds = this.documentIds.filter(c => c !== deletedId);
+
+},
     async getAllDocumentIds() {
       const Cuuser = getAuth().currentUser;
       const userId = this.route.params.userId;

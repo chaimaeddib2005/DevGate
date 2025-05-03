@@ -10,7 +10,7 @@
 
     <div v-if="documentIds.length" class="competence-grid">
       <div v-for="id in documentIds" :key="id" class="competence-card-wrapper">
-        <CompetenceView :competenceId="id" :isOwner="isOwner"/>
+        <CompetenceView :competenceId="id" :isOwner="isOwner" @deleted="handleCompetenceDeleted"/>
       </div>
     </div>
 
@@ -48,6 +48,11 @@ export default {
   });
   },
   methods: {
+    handleCompetenceDeleted(deletedId) {
+ 
+    this.documentIds = this.documentIds.filter(c => c !== deletedId);
+
+  },
     async getAllDocumentIds() {
       const Cuuser = getAuth().currentUser;
       const userId = this.route.params.userId;

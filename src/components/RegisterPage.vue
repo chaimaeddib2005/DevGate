@@ -120,8 +120,8 @@ const handleSignUp = async () => {
       followings: [],
       joined: new Date()
     })
-
-    router.push('/home')
+    const userId = user.uid;
+    router.push('/home'+userId);
   } catch (err) {
     console.error(err)
     if (err.code === 'auth/email-already-in-use') {

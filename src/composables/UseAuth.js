@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { auth, db } from '@/firebase/firebase'
+import { auth, db } from '@/firebase'
 import {
   createUserWithEmailAndPassword,
   sendEmailVerification,

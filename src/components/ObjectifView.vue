@@ -27,17 +27,17 @@
     <div v-if="editmode" class="cyber-objectif-edit-form">
       <div class="cyber-form-group">
         <label for="name" class="cyber-label">Name:</label>
-        <input type="text" v-model="objectif.name" id="name" @keyup.enter="updateObjectif" class="cyber-form-input" />
+        <input type="text" v-model="name" id="name" @keyup.enter="updateObjectif" class="cyber-form-input" />
       </div>
       <div class="cyber-form-group">
         <label for="status" class="cyber-label">Status:</label>
-        <input type="text" v-model="objectif.status" id="status" @keyup.enter="updateObjectif" class="cyber-form-input" />
+        <input type="text" v-model="status" id="status" @keyup.enter="updateObjectif" class="cyber-form-input" />
       </div>
       <div class="cyber-form-group">
         <label for="progress" class="cyber-label">Progress:</label>
         <input
           type="number"
-          v-model="objectif.progress"
+          v-model="progress"
           id="progress"
           @keyup.enter="updateObjectif"
           min="0"
@@ -60,16 +60,15 @@
 </template>
 
 <script>
-/* Script remains exactly the same */
 import { db } from '@/firebase';
 import { doc, getDoc, updateDoc, deleteDoc, addDoc, collection, serverTimestamp, arrayRemove, arrayUnion } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 export default {
   props: {
-    isOwner:{
-      type:Boolean,
-      required:true,
+    isOwner: {
+      type: Boolean,
+      required: true,
     },
     objectifId: {
       type: String,
@@ -79,7 +78,15 @@ export default {
 
   data() {
     return {
-      objectif: {},
+      objectif: {
+        name: '',
+        status: '',
+        progress: 0,
+        created: null
+      },
+      name: '',
+      status: '',
+      progress: 0,
       editmode: false,
     };
   },
@@ -97,6 +104,9 @@ export default {
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           this.objectif = docSnap.data();
+          this.name = this.objectif.name;
+          this.status = this.objectif.status;
+          this.progress = this.objectif.progress;
         } else {
           console.log('No such document!');
         }
@@ -107,24 +117,33 @@ export default {
 
     async updateObjectif() {
       try {
-        const docRef = doc(db, 'objectifs', this.objectifId);
-        await updateDoc(docRef, {
-          body: this.objectif.name,
-          status: this.objectif.status,
-          progress: this.objectif.progress,
-        });
+        const updateData = {
+          name: this.name,
+          status: this.status,
+          progress: this.progress,
+        };
 
-        const upodateRef = await addDoc(collection(db, 'timeline'), {
+        const docRef = doc(db, 'objectifs', this.objectifId);
+        await updateDoc(docRef, updateData);
+
+        // Update local objectif data
+        this.objectif = {
+          ...this.objectif,
+          ...updateData
+        };
+
+        const updateRef = await addDoc(collection(db, 'timeline'), {
           ItemId: this.objectifId,
           ItemType: 'objectif',
-          Message: 'New modifications on the objectif ' + this.objectif.body,
+          Message: 'Updated objectif: ' + this.name,
           timestamp: serverTimestamp(),
           type: 'update',
         });
+
         const user = getAuth().currentUser;
         const userRef = doc(db, 'users', user.uid);
         await updateDoc(userRef, {
-          timeline: arrayUnion(upodateRef.id),
+          timeline: arrayUnion(updateRef.id),
         });
 
         this.editmode = false;
@@ -132,7 +151,6 @@ export default {
       } catch (error) {
         console.error('Error updating or logging modification:', error);
       }
-      window.location.reload();
     },
 
     async deleteObjectif(objectifId) {
@@ -140,24 +158,41 @@ export default {
         const docRef = doc(db, 'objectifs', objectifId);
         await deleteDoc(docRef);
         console.log('Document successfully deleted!');
+
         const user = getAuth().currentUser;
         const userRef = doc(db, 'users', user.uid);
 
-        const midfRef = await addDoc(collection(db, 'timeline'), {
+        const timelineRef = await addDoc(collection(db, 'timeline'), {
           ItemId: objectifId,
           ItemType: 'objectif',
           Message: 'Deleted objectif: ' + this.objectif.name,
           timestamp: serverTimestamp(),
           type: 'delete',
         });
+
         await updateDoc(userRef, {
           objectifs: arrayRemove(objectifId),
-          timeline: arrayUnion(midfRef.id),
+          timeline: arrayUnion(timelineRef.id),
         });
+
+        // Emit event to parent component
+        this.$emit('deleted', objectifId);
+
+        // Clear local data
+        this.objectif = {
+          name: '',
+          status: '',
+          progress: 0,
+          created: null
+        };
+        this.name = '';
+        this.status = '';
+        this.progress = 0;
+        this.editmode = false;
+
       } catch (error) {
         console.error('Error removing document:', error);
       }
-      window.location.reload();
     },
 
     formatDate(timestamp) {
@@ -211,7 +246,6 @@ export default {
 .cyber-edit-btn:hover {
   transform: translateY(-1px);
 }
-
 
 .cyber-btn-icon {
   font-size: 0.9rem;
@@ -350,6 +384,7 @@ export default {
   .cyber-objectif-card-container {
     padding: 1rem;
     margin-bottom: 1rem;
+    width: 100%;
   }
 
   .cyber-card-actions {

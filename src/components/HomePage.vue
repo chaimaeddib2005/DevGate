@@ -1,25 +1,40 @@
 <template>
   <div class="container">
-    
     <!-- Developer Animation Background Elements -->
     <div class="code-rain">
       <canvas ref="canvas"></canvas>
-
     </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div v-if="showLogoutModal" class="modal-overlay" @click.self="showLogoutModal = false">
+      <div class="modal-content">
+        <h3>Confirm Logout</h3>
+        <p>Are you sure you want to log out?</p>
+        <div class="modal-actions">
+          <button @click="confirmLogout" class="btn submit-btn">Yes, Logout</button>
+          <button @click="showLogoutModal = false" class="btn cancel-btn">Cancel</button>
+        </div>
+      </div>
+    </div>
+
     <aside class="profile">
-      <router-link to="/discover" class="btn back-btn" v-if="!isanOwner" >
+      <router-link to="/discover" class="btn back-btn" v-if="!isanOwner">
         <i class="fas fa-arrow-left"></i> GO BACK
       </router-link>
       <img :src="userData.photoURL || defaultImage" alt="profile" class="profile-img" />
       <h2>{{ userData.name }}</h2>
       <p>{{ userData.email }}</p>
-      <p>LinkedIn : <a>{{ userData.linkedin }}</a></p> 
+      <p>LinkedIn : <a :href="userData.linkedin" target="_blank" rel="noopener noreferrer">{{ userData.name }}</a></p>
       <p>description : {{ userData.description }}</p>
       
       <button @click="goToEditProfile" v-if="isanOwner" class="btn edit-btn">Edit Profil</button>
       <button @click="showTimeModal = true" v-if="isanOwner" class="btn time-btn">
         <i class="fas fa-clock"></i> Log Coding Time
       </button>
+      <button @click="showLogoutModal = true" v-if="isanOwner" class="btn logout-btn">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </button>
+      
       <div class="follows">
         <div @click="goToFollowings" class="follow-item">
           <span class="follow-number">{{ userData.followings?.length || 0 }}</span> Followings
@@ -57,57 +72,59 @@
         </div>
       </div>
     </div>
+    
     <div v-if="showTimeModal" class="modal-overlay" @click.self="showTimeModal = false">
-    <div class="modal-content">
-      <h3>Log Your Coding Time</h3>
-      <div class="time-input">
-        <label for="hours">Hours:</label>
-        <input type="number" id="hours" v-model.number="hours" min="0" max="24" placeholder="0">
+      <div class="modal-content">
+        <h3>Log Your Coding Time</h3>
+        <div class="time-input">
+          <label for="hours">Hours:</label>
+          <input type="number" id="hours" v-model.number="hours" min="0" max="24" placeholder="0">
+          
+          <label for="minutes">Minutes:</label>
+          <input type="number" id="minutes" v-model.number="minutes" min="0" max="59" placeholder="0">
+        </div>
         
-        <label for="minutes">Minutes:</label>
-        <input type="number" id="minutes" v-model.number="minutes" min="0" max="59" placeholder="0">
-      </div>
-      
-      <!-- Validation Error Message -->
-      <div v-if="validationError" class="validation-error">
-        {{ validationError }}
-      </div>
-      
-      <div class="modal-actions">
-        <button @click="logCodingTime" class="btn submit-btn">Submit</button>
-        <button @click="showTimeModal = false" class="btn cancel-btn">Cancel</button>
+        <!-- Validation Error Message -->
+        <div v-if="validationError" class="validation-error">
+          {{ validationError }}
+        </div>
+        
+        <div class="modal-actions">
+          <button @click="logCodingTime" class="btn submit-btn">Submit</button>
+          <button @click="showTimeModal = false" class="btn cancel-btn">Cancel</button>
+        </div>
       </div>
     </div>
   </div>
-  </div>
 </template>
   
-  <script setup>
-  import { ref, onMounted, onUnmounted} from 'vue'
-  import { useRouter,useRoute } from 'vue-router'
-  import { getAuth } from 'firebase/auth'
-  import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore'
-  import { db } from '../firebase'
-  
-  const route = useRoute()
-  const router = useRouter()
-  const userData = ref({})
-  const canvas = ref(null) // This should be at the top with other refs
-  const showTimeModal = ref(false)
-  const hours = ref(0)
-  const minutes = ref(0)
-  const validationError = ref('');
+<script setup>
+import { ref, onMounted, onUnmounted} from 'vue'
+import { useRouter,useRoute } from 'vue-router'
+import { getAuth } from 'firebase/auth'
+import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore'
+import { db } from '../firebase'
+import { logout } from '@/composables/UseAuth' // Import the logout function
 
-  const defaultImage = 'https://via.placeholder.com/150'
-  const userId = route.params.userId
-  const navItems = [
+const route = useRoute()
+const router = useRouter()
+const userData = ref({})
+const canvas = ref(null)
+const showTimeModal = ref(false)
+const showLogoutModal = ref(false)
+const hours = ref(0)
+const minutes = ref(0)
+const validationError = ref('')
+
+const defaultImage = 'https://via.placeholder.com/150'
+const userId = route.params.userId
+const navItems = [
   { title: 'Compétences', route: '/Competences/'+userId, icon: 'fas fa-tools', description: 'Gérez vos compétences.' },
   { title: 'Projets', route: '/projects/'+userId, icon: 'fas fa-rocket', description: 'Partagez vos projets.' },
   { title: 'Activité', route: '/timeline/'+userId, icon: 'fas fa-chart-line', description: 'Suivez votre activité.' },
   { title: 'Objectifs', route: '/objectifs/'+userId, icon: 'fas fa-bullseye', description: 'Atteignez vos objectifs.' },
   {title:'Visualization',route:'/visualize/'+userId,icon:'fas fa-eye',description:'visualize you progress'}
 ]
-
 
 let animationInterval = null;
 const isanOwner = ref(false);
@@ -118,6 +135,7 @@ let matrixChars = "01ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456
 const matrixFontSize = 14;
 const curentUserId = getAuth().currentUser.uid;
 console.log(curentUserId);
+
 async function logCodingTime() {
   // Reset validation error
   validationError.value = '';
@@ -171,6 +189,17 @@ async function logCodingTime() {
     console.error('Error logging coding time:', error);
   }
 }
+
+// Logout functions
+const confirmLogout = async () => {
+  try {
+    await logout()
+    router.push('/login') // Redirect to login page after logout
+  } catch (error) {
+    console.error('Logout error:', error)
+  }
+}
+
 // Draw function (moved to root)
 function drawMatrixRain() {
   // Semi-transparent black overlay for trailing effect
@@ -239,33 +268,31 @@ onUnmounted(() => {
   if (animationInterval) clearInterval(animationInterval);
 });
 
-  
-  function goToEditProfile() {
-    router.push('/edit-profile')
-  }
-  
-  function goToDiscover() {
-    router.push('/discover')
-  }
-  
-  function navigateTo(route) {
-    router.push(route)
-  }
+function goToEditProfile() {
+  router.push('/edit-profile')
+}
 
-  function goToFollowings() {
-     const userId = route.params.userId;
-     router.push('/followings/'+userId)
-  }
+function goToDiscover() {
+  router.push('/discover')
+}
 
-  function goToFollowers() {
-    const userId = route.params.userId;
-     router.push('/followers/'+userId)
-  }
+function navigateTo(route) {
+  router.push(route)
+}
 
-  </script>
+function goToFollowings() {
+  const userId = route.params.userId;
+  router.push('/followings/'+userId)
+}
+
+function goToFollowers() {
+  const userId = route.params.userId;
+  router.push('/followers/'+userId)
+}
+</script>
   
-  <style scoped>
-  .sloth-logo {
+<style scoped>
+.sloth-logo {
   position: absolute;
   width: 170px;
   height: 170px;
@@ -273,7 +300,8 @@ onUnmounted(() => {
   filter: drop-shadow(0 0 10px rgba(0, 102, 255, 0.7));
   z-index: 0;
 }
-  .validation-error {
+
+.validation-error {
   color: #ff4444;
   margin: 10px 0;
   padding: 10px;
@@ -286,7 +314,8 @@ onUnmounted(() => {
 input:invalid {
   border-color: #ff4444;
 }
-  .time-btn {
+
+.time-btn {
   background: #0066ff;
   color: white;
   padding: 10px 10px;
@@ -299,12 +328,32 @@ input:invalid {
   gap: 8px;
   transition: all 0.3s;
   box-shadow: 0 5px 0 #0044cc;
-
 }
 
 .time-btn:hover {
   background: #0066ff;
   transform: translateY(2px);
+}
+
+/* Logout button styles */
+.logout-btn {
+  background: rgba(255, 50, 50, 0.2);
+  color: #ff6666;
+  padding: 10px 10px;
+  border-radius: 0;
+  margin-top: 15px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s;
+  border: 2px solid #ff4444;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 50, 50, 0.4);
+  text-shadow: 0 0 8px rgba(255, 100, 100, 0.7);
 }
 
 .modal-overlay {
@@ -382,8 +431,9 @@ input:invalid {
 .cancel-btn:hover {
   background: #d32f2f;
 }
-  .back-btn{
-    display: inline-flex;
+
+.back-btn{
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.8rem 1.5rem;
@@ -410,6 +460,7 @@ input:invalid {
   transform: translateY(-2px);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
+
 /* Base Container */
 * {
   margin: 0; 
@@ -450,21 +501,6 @@ input:invalid {
   z-index: 1;
 }
 
-/* Developer Animation */
-.developer-animation {
-  position: absolute;
-  width: 300px;
-  height: 300px;
-  right: 10%;
-  top: 30%;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><path d="M100 30L70 70H50V130H70L100 170L130 130H150V70H130L100 30Z" fill="%230066ff" opacity="0.1"/><circle cx="100" cy="100" r="60" fill="none" stroke="%230066ff" stroke-width="2" opacity="0.3"/><path d="M80 90L70 100L80 110M120 90L130 100L120 110" stroke="%230066ff" stroke-width="2" fill="none"/><rect x="85" y="130" width="30" height="10" rx="2" fill="%230066ff" opacity="0.5"/></svg>');
-  background-repeat: repeat;
-  animation: float 8s ease-in-out infinite;
-  filter: drop-shadow(0 0 15px rgba(0, 102, 255, 0.5));
-  z-index: 0;
-  color: white;
-}
-
 /* Platform Header */
 .platform-header {
   display: flex;
@@ -480,19 +516,6 @@ input:invalid {
   align-items: center;
   gap: 20px;
   margin-bottom: 20px;
-}
-
-.floating-developer {
-  position: absolute;
-  width: 280px;
-  height: 280px;
-  right: 10%;
-  top: 30%;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><path d="M120 80Q140 60 160 80L150 120Q130 140 110 120Z" fill="%231a1a2e" stroke="%230066ff" stroke-width="2"/><circle cx="130" cy="70" r="15" fill="%231a1a2e" stroke="%230066ff" stroke-width="1.5"/><circle cx="125" cy="65" r="3" fill="%230066ff"/><path d="M135 65L145 60" stroke="%230066ff" stroke-width="1.5" stroke-linecap="round"/><path d="M110 90L90 110" stroke="%230066ff" stroke-width="2" stroke-linecap="round"/><path d="M160 90L180 100" stroke="%230066ff" stroke-width="2" stroke-linecap="round"/><path d="M120 130L120 150" stroke="%230066ff" stroke-width="2" stroke-linecap="round"/></svg>');
-  background-repeat: no-repeat;
-  background-position: center;
-  z-index: 0;
-  animation: slow-blink 6s infinite;
 }
 
 .platform-title {
@@ -513,17 +536,6 @@ input:invalid {
   background: rgba(20, 20, 30, 0.7);
   border-left: 3px solid #0066ff;
   font-size: medium;
-}
-
-/* Animations */
-@keyframes float {
-  0%, 100% { transform: translateY(-20px) rotate(-5deg); }
-  50% { transform: translateY(20px) rotate(5deg); }
-}
-
-@keyframes float-small {
-  0%, 100% { transform: translateY(-10px); }
-  50% { transform: translateY(10px); }
 }
 
 /* Profile Sidebar */
@@ -561,16 +573,6 @@ input:invalid {
   font-size: 20px;
 }
 
-.user-desc {
-  background: rgba(20, 20, 20, 0.8);
-  border-left: 3px solid #0066ff;
-  padding: 15px;
-  margin: 20px 0;
-  font-size: 24px;
-  line-height: 1.5;
-  text-align: left;
-}
-
 /* Buttons */
 .btn {
   border: none;
@@ -591,6 +593,7 @@ input:invalid {
   box-shadow: 0 5px 0 #0044cc;
   position: relative;
   overflow: hidden;
+  width: 100%;
 }
 
 .edit-btn:hover {
@@ -753,5 +756,4 @@ input:invalid {
 .block:hover {
   animation: glitch 0.5s linear infinite;
 }
-
-  </style>
+</style>

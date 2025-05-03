@@ -6,7 +6,7 @@
       </router-link>
       <router-link to="/AddProject" class="cyber-add-btn" v-if="isOwner">
         <i class="fas fa-plus-circle cyber-btn-icon"></i>
-        <span class="cyber-btn-text" >Add Project</span>
+        <span class="cyber-btn-text">Add Project</span>
       </router-link>
       <div class="cyber-view-selector">
         <label for="viewType" class="cyber-label">View:</label>
@@ -19,7 +19,11 @@
 
     <div v-if="projectIds.length" :class="['cyber-project-list', `cyber-view-${viewType}`]">
       <div v-for="id in projectIds" :key="id" class="cyber-card-container">
-        <projectView :projectId="id" :isOwner ="isOwner"/>
+        <projectView 
+          :projectId="id" 
+          :isOwner="isOwner"
+          @deleted="handleProjectDeleted"
+        />
       </div>
     </div>
 
@@ -40,44 +44,56 @@ export default {
   },
   data() {
     return {
-      projectIds: [], // Holds Project Document IDs
-      viewType: 'list', // Default view type
-      userId:"",
+      projectIds: [],
+      viewType: 'list',
+      userId: "",
       isOwner: false,
-      route : useRoute()
+      route: useRoute()
     };
   },
   mounted() {
-    console.log("🐺🐺🐺🐺🐺🐺🐺🐺🐺🐺currentUser",getAuth().currentUser.uid);
-    this.getAllDocumentIds().then((ids) => {
-      this.projectIds = ids;
-    });
+    this.loadProjects();
   },
   methods: {
+    async loadProjects() {
+      const ids = await this.getAllDocumentIds();
+      this.projectIds = ids;
+    },
+    
     async getAllDocumentIds() {
       const Cuuser = getAuth().currentUser;
       const userId = this.route.params.userId;
       this.userId = userId;
       this.isOwner = Cuuser && Cuuser.uid === userId;
-      console.log(this.isOwner)
+      
       try {
         const userRef = doc(db, 'users', userId);
         const userDoc = await getDoc(userRef);
-        const projects = userDoc.data().projects || []; // Fetch Project IDs from user document
-        return projects;
+        return userDoc.data().projects || [];
       } catch (error) {
         console.error('Error fetching document IDs:', error);
         return [];
       }
     },
-  },
+    
+    handleProjectDeleted(deletedId) {
+      // Remove the deleted project from the local array
+      this.projectIds = this.projectIds.filter(id => id !== deletedId);
+      
+      // Optional: Show success notification
+      console.log(`Project ${deletedId} removed successfully`);
+      
+      // If using a notification system:
+      // this.$notify({ type: 'success', message: 'Project deleted' });
+    }
+  }
 };
 </script>
 
 <style scoped>
 /* Cyber/Developer Theme Styles for Projects */
 .cyber-projects-container {
-  min-height: 100vh; /* Minimum height = full viewport height */
+  min-height: 100vh;
   width: 100%;
   margin: 0 auto;
   padding: 2rem;
@@ -85,7 +101,6 @@ export default {
   z-index: 1;
   background: rgba(10, 10, 20);
 }
-
 
 .cyber-controls {
   display: flex;
@@ -230,20 +245,10 @@ export default {
   z-index: 1;
 }
 
-.cyber-view-list .cyber-card-container::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to right, transparent, rgba(0, 102, 255, 0.05), transparent);
-}
-
 /* Gallery View */
 .cyber-view-gallery {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, auto)); /* auto for height */
+  grid-template-columns: repeat(auto-fill, minmax(300px, auto));
   gap: 2rem;
 }
 
@@ -251,35 +256,8 @@ export default {
   background: rgba(20, 20, 30, 0.7);
   position: relative;
   transition: all 0.4s ease;
-  display: flex; /* Enable flexbox for content layout */
-  flex-direction: column; /* Stack content vertically */
-}
-
-.cyber-view-gallery .cyber-card-container:hover {
-  border-color: #00a2ff;
-}
-
-.cyber-view-gallery .cyber-card-container::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, transparent 45%, rgba(0, 102, 255, 0.1) 50%, transparent 55%);
-  background-size: 5px 5px;
-  opacity: 0.6;
-  z-index: 1;
-}
-
-.cyber-view-gallery .cyber-card-container::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(to right, transparent, rgba(0, 102, 255, 0.05), transparent);
+  display: flex;
+  flex-direction: column;
 }
 
 .cyber-router-view {
@@ -287,49 +265,6 @@ export default {
   padding-top: 2rem;
   border-top: 1px solid rgba(0, 102, 255, 0.2);
 }
-
-/* Animations */
-@keyframes cyber-glitch {
-  0% {
-    transform: translate(0);
-  }
-  20% {
-    transform: translate(-2px, 2px);
-  }
-  40% {
-    transform: translate(-2px, -2px);
-  }
-  60% {
-    transform: translate(2px, 2px);
-  }
-  80% {
-    transform: translate(2px, -2px);
-  }
-  100% {
-    transform: translate(0);
-  }
-}
-
-@keyframes cyber-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(0, 102, 255, 0.4);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(0, 102, 255, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(0, 102, 255, 0);
-  }
-}
-
-.cyber-add-btn:hover {
-  background: rgba(0, 102, 255, 0.3);
-  text-shadow: 0 0 10px rgba(0, 102, 255, 0.7);
-  box-shadow: 0 0 15px rgba(0, 102, 255, 0.4);
-  transform: translateY(-2px);
-}
-
-
 
 @media (max-width: 768px) {
   .cyber-projects-container {
@@ -350,10 +285,5 @@ export default {
   .cyber-view-gallery {
     grid-template-columns: 1fr;
   }
-}
-html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
 }
 </style>

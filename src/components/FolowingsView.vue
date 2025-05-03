@@ -5,44 +5,80 @@
         <i class="fas fa-arrow-left"></i> GO BACK
       </router-link>
     </div>
-    <h1 class="cyber-followings-title"> Followings</h1>
+    <h1 class="cyber-followings-title">Followings</h1>
+
+    <!-- Search Bar -->
+    <div class="cyber-search-container">
+      <input
+        v-model="searchQuery"
+        type="text"
+        placeholder="Search followings..."
+        class="cyber-search-input"
+      />
+      <i class="fas fa-search cyber-search-icon"></i>
+    </div>
 
     <div v-if="loading" class="cyber-loading-message">Loading...</div>
 
-    <div v-else-if="followingUsers.length === 0" class="cyber-no-followings-message">
-      <p>There is no followings</p>
+    <div v-else-if="filteredFollowingUsers.length === 0" class="cyber-no-followings-message">
+      <p>No matching followings found</p>
     </div>
 
     <div v-else class="cyber-user-grid">
-      <div v-for="user in followingUsers" :key="user.id" class="cyber-user-card">
+      <div v-for="user in filteredFollowingUsers" :key="user.id" class="cyber-user-card">
         <div class="cyber-user-image-wrapper">
-          <img
+          <img @click="GoToprofile(user.id)"
             :src="user.photoURL || defaultImage"
-            alt="Photo de profil"
+            alt="Profile photo"
             class="cyber-user-image"
           />
         </div>
         <h2 class="cyber-user-name">{{ user.name }}</h2>
         <p class="cyber-user-email">{{ user.email }}</p>
+        <button 
+          @click="unfollowUser(user.id)" 
+          class="cyber-unfollow-btn"
+          v-if="isCurrentUser"
+        >
+          <i class="fas fa-user-minus"></i> Unfollow
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { ref, onMounted, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { db } from '@/firebase';
-import { getDoc, doc } from 'firebase/firestore';
+import { getDoc, doc, updateDoc, arrayRemove } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+
 const route = useRoute();
+const router = useRouter();
+const auth = getAuth();
 const userId = route.params.userId;
 const followingUsers = ref([]);
 const loading = ref(true);
+const searchQuery = ref('');
 const defaultImage = 'https://via.placeholder.com/150';
 
-onMounted(async () => {
-  
+// Check if the current user is viewing their own followings
+const isCurrentUser = computed(() => {
+  return auth.currentUser?.uid === userId;
+});
 
+// Filter users based on search query
+const filteredFollowingUsers = computed(() => {
+  if (!searchQuery.value) return followingUsers.value;
+  
+  const query = searchQuery.value.toLowerCase();
+  return followingUsers.value.filter(user => 
+    user.name.toLowerCase().includes(query) || 
+    user.email.toLowerCase().includes(query))
+});
+
+onMounted(async () => {
   if (userId) {
     const userRef = doc(db, 'users', userId);
     const userSnap = await getDoc(userRef);
@@ -60,9 +96,28 @@ onMounted(async () => {
       }
     }
   }
-
   loading.value = false;
 });
+
+async function GoToprofile(Id) {
+  router.push('/home/'+Id);
+}
+
+async function unfollowUser(userIdToUnfollow) {
+  try {
+    const currentUserRef = doc(db, 'users', auth.currentUser.uid);
+    await updateDoc(currentUserRef, {
+      followings: arrayRemove(userIdToUnfollow)
+    });
+    
+    // Remove from local list
+    followingUsers.value = followingUsers.value.filter(user => user.id !== userIdToUnfollow);
+    
+    console.log('Successfully unfollowed user');
+  } catch (error) {
+    console.error('Error unfollowing user:', error);
+  }
+}
 </script>
 
 <style scoped>
@@ -113,6 +168,39 @@ onMounted(async () => {
   letter-spacing: 1px;
 }
 
+/* Search Bar Styles */
+.cyber-search-container {
+  position: relative;
+  max-width: 500px;
+  margin: 0 auto 2rem;
+}
+
+.cyber-search-input {
+  width: 100%;
+  padding: 0.8rem 1rem 0.8rem 2.5rem;
+  background: rgba(20, 20, 30, 0.8);
+  border: 1px solid #0066ff;
+  border-radius: 4px;
+  color: #eee;
+  font-family: 'Roboto Mono', monospace;
+  font-size: 1rem;
+  transition: all 0.3s;
+}
+
+.cyber-search-input:focus {
+  outline: none;
+  box-shadow: 0 0 10px rgba(0, 102, 255, 0.5);
+  background: rgba(30, 30, 40, 0.8);
+}
+
+.cyber-search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #00a2ff;
+}
+
 .cyber-loading-message {
   color: #eee;
   text-align: center;
@@ -126,7 +214,6 @@ onMounted(async () => {
   margin-top: 2rem;
   font-size: 1.2rem;
 }
-
 
 .cyber-user-grid {
   display: grid;
@@ -144,6 +231,7 @@ onMounted(async () => {
   align-items: center;
   text-align: center;
   transition: all 0.3s ease;
+  position: relative;
 }
 
 .cyber-user-card:hover {
@@ -164,19 +252,40 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  cursor: pointer;
 }
 
 .cyber-user-name {
   color: #eee;
   font-family: 'Rajdhani', sans-serif;
   font-size: 1.5rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .cyber-user-email {
   color: #aaa;
   font-size: 0.9rem;
-  margin-bottom: 0;
+  margin-bottom: 1rem;
+}
+
+.cyber-unfollow-btn {
+  padding: 0.5rem 1rem;
+  background: rgba(255, 51, 102, 0.2);
+  color: #ff3366;
+  border: 1px solid #ff3366;
+  border-radius: 4px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cyber-unfollow-btn:hover {
+  background: rgba(255, 51, 102, 0.4);
+  box-shadow: 0 0 8px rgba(255, 51, 102, 0.4);
 }
 
 /* Responsive adjustments */
@@ -194,14 +303,12 @@ onMounted(async () => {
   }
 }
 
-/* Tablet styles */
 @media (min-width: 769px) and (max-width: 1024px) {
   .cyber-user-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-/* Desktop styles */
 @media (min-width: 1025px) {
   .cyber-user-grid {
     grid-template-columns: repeat(3, 1fr);

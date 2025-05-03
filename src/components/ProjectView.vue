@@ -16,6 +16,9 @@
       </div>
       <div class="cyber-card-body">
         <p class="cyber-card-text">
+          <span class="cyber-label">Name:</span> {{ project.name }}
+        </p>
+        <p class="cyber-card-text">
           <span class="cyber-label">Description:</span> {{ project.description }}
         </p>
         <p class="cyber-card-text">
@@ -42,15 +45,15 @@
       <h3 class="cyber-form-title">Edit Project</h3>
       <div class="cyber-form-group">
         <label for="name" class="cyber-label">Project Name:</label>
-        <input type="text" id="name" v-model="project.name" class="cyber-form-input" />
+        <input type="text" id="name" v-model="name" class="cyber-form-input" />
       </div>
       <div class="cyber-form-group">
         <label for="description" class="cyber-label">Description:</label>
-        <textarea id="description" v-model="project.description" class="cyber-form-input"></textarea>
+        <textarea id="description" v-model="description" class="cyber-form-input"></textarea>
       </div>
       <div class="cyber-form-group">
         <label for="githubLink" class="cyber-label">GitHub Link:</label>
-        <input type="text" id="githubLink" v-model="project.githubLink" class="cyber-form-input" />
+        <input type="text" id="githubLink" v-model="githubLink" class="cyber-form-input" />
       </div>
       <div class="cyber-form-group">
         <label for="tools" class="cyber-label">Tools (comma-separated):</label>
@@ -65,7 +68,7 @@
       <div class="cyber-form-group">
         <label for="image" class="cyber-label">Image:</label>
         <input type="file" id="image" @change="handleImageUpload" class="cyber-form-input" />
-        <img v-if="project.image" :src="project.image" alt="Project Image Preview" class="cyber-image-preview" />
+        <img v-if="image" :src="image" alt="Project Image Preview" class="cyber-image-preview" />
       </div>
       <div class="cyber-form-actions">
         <button @click="updateProject" class="cyber-submit-button">Save</button>
@@ -109,6 +112,11 @@ export default {
         created: null,
         image: '',
       },
+      name:"",
+      description:"",
+      githubLink: "",
+      image: "",
+      tools: [],
       toolsInput: '',
       editmode: false,
     };
@@ -138,7 +146,7 @@ export default {
     },
 
     parseTools() {
-      this.project.tools = this.toolsInput.split(',').map(t => t.trim()).filter(Boolean);
+      this.tools = this.toolsInput.split(',').map(t => t.trim()).filter(Boolean);
     },
 
     handleImageUpload(event) {
@@ -146,7 +154,7 @@ export default {
       if (file) {
         const reader = new FileReader();
         reader.onload = e => {
-          this.project.image = e.target.result; // base64
+          this.image = e.target.result; // base64
         };
         reader.readAsDataURL(file);
       }
@@ -161,6 +169,11 @@ export default {
           const data = snap.data();
           this.project = data;
           this.toolsInput = this.project.tools.join(', ');
+          this.name = this.project.name;
+          this.description = this.project.description;
+          this.tools = this.project.tools;
+          this.githubLink = this.project.githubLink;
+          this.image = this.project.image;
 
         } else {
           console.log('No such document!');
@@ -171,36 +184,57 @@ export default {
     },
 
     async updateProject() {
-      try {
-        const ref = doc(db, 'projects', this.projectId);
-        await updateDoc(ref, {
-          name: this.project.name,
-          description: this.project.description,
-          githubLink: this.project.githubLink,
-          tools: this.project.tools,
-          image: this.project.image,
-          created: this.project.created || serverTimestamp(),
-        });
+  try {
+    // First parse tools from the input string
+    this.tools = this.toolsInput.split(',').map(t => t.trim()).filter(Boolean);
+    
+    // Prepare the update data
+    const updateData = {
+      name: this.name,
+      description: this.description,
+      githubLink: this.githubLink,
+      tools: this.tools,
+      image: this.image,
+      created: this.project.created || serverTimestamp(),
+    };
 
-        const timeref = await addDoc(collection(db, 'timeline'), {
-          ItemId: this.projectId,
-          ItemType: 'project',
-          Message: 'Project updated: ' + this.project.name,
-          timestamp: serverTimestamp(),
-          type: 'update',
-        });
-        const currentUser = getAuth().currentUser;
-        const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, {
-          timeline: arrayUnion(timeref.id),
-        });
-        this.editmode = false;
-        console.log('Project updated!');
-      } catch (error) {
-        console.error('Update failed:', error);
-      }
-      window.location.reload();
-    },
+    // Update Firestore
+    const ref = doc(db, 'projects', this.projectId);
+    await updateDoc(ref, updateData);
+
+    // Immediately update the local project object
+    this.project = {
+      ...this.project,
+      ...updateData
+    };
+
+    // Add timeline entry
+    const timeref = await addDoc(collection(db, 'timeline'), {
+      ItemId: this.projectId,
+      ItemType: 'project',
+      Message: 'Project updated: ' + this.name, // Use current name instead of project.name
+      timestamp: serverTimestamp(),
+      type: 'update',
+    });
+
+    const currentUser = getAuth().currentUser;
+    const userRef = doc(db, 'users', currentUser.uid);
+    await updateDoc(userRef, {
+      timeline: arrayUnion(timeref.id),
+    });
+
+    this.editmode = false;
+    console.log('Project updated!');
+    
+    // Optional: Show success notification
+    // this.$notify({ type: 'success', message: 'Project updated successfully' });
+  } catch (error) {
+    console.error('Update failed:', error);
+    // Optional: Show error notification
+    // this.$notify({ type: 'error', message: 'Failed to update project' });
+  }
+  // Removed window.location.reload() - changes are now synchronized immediately
+},
 
     async deleteProject(id) {
       try {
@@ -371,21 +405,24 @@ export default {
   text-shadow: 0 0 3px rgba(0, 102, 255, 0.5);
 }
 
-.cyber-form-input {
-  padding: 0.8rem;
-  border: 1px solid #0066ff;
-  border-radius: 0;
-  background-color: rgba(20, 20, 30, 0.8);
+input[type="text"], textarea {
+  width: 100%;
+  padding: 0.7rem;
+  background: rgba(20, 20, 30, 0.9);
+  border: 1px solid #444;
   color: #fff;
-  font-family: 'Roboto Mono', monospace;
-  font-size: 1rem;
-  transition: border-color 0.3s, box-shadow 0.3s;
+  border-left: 3px solid #0066ff;
+  font-family: 'Courier New', monospace;
+  margin-bottom: 0.5rem;
+  z-index: 10;
+  position: relative;
 }
 
-.cyber-form-input:focus {
+input[type="text"]:focus, textarea:focus {
   outline: none;
   border-color: #00a2ff;
-  box-shadow: 0 0 10px rgba(0, 102, 255, 0.7);
+  box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.3);
+  background: rgba(30, 30, 50, 0.9);
 }
 
 .cyber-form-actions {
