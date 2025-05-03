@@ -9,7 +9,7 @@
     <div class="login-container">
       <div class="login-card">
         <div class="platform-logo">
-          <div class="floating-developer"></div>
+          <img src="/logo1.png" class="sloth-logo"  alt="DevHub Sloth">
           <h1 class="platform-title">DEV<span>HUB</span></h1>
         </div>
         
@@ -118,7 +118,15 @@ const handleLogin = async () => {
   margin: 0;
   padding: 0;
 }
-
+.sloth-logo {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  left: 16%;
+  filter: drop-shadow(0 0 10px rgba(0, 102, 255, 0.7));
+  z-index: 0;
+  margin-left: 20px;
+}
 .container {
   min-height: 100vh;
   display: flex;
@@ -167,6 +175,7 @@ const handleLogin = async () => {
   justify-content: center;
   gap: 15px;
   margin-bottom: 20px;
+  margin-left: 37px;
 }
 
 .floating-developer {

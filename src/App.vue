@@ -20,6 +20,7 @@ export default {
 body {
   margin: 0;
   padding: 0;
+  background-color: rgba(10, 10, 20);
 }
 #app{
   margin:0;

@@ -2,7 +2,6 @@
   <div class="container">
     
     <!-- Developer Animation Background Elements -->
-    <div class="developer-animation"></div>
     <div class="code-rain">
       <canvas ref="canvas"></canvas>
 
@@ -18,7 +17,9 @@
       <p>description : {{ userData.description }}</p>
       
       <button @click="goToEditProfile" v-if="isanOwner" class="btn edit-btn">Edit Profil</button>
-
+      <button @click="showTimeModal = true" v-if="isanOwner" class="btn time-btn">
+        <i class="fas fa-clock"></i> Log Coding Time
+      </button>
       <div class="follows">
         <div @click="goToFollowings" class="follow-item">
           <span class="follow-number">{{ userData.followings?.length || 0 }}</span> Followings
@@ -34,7 +35,7 @@
       <div class="platform-header">
         <div class="platform-logo">
           <!-- Developer Avatar Floating Next to Logo -->
-          <div class="floating-developer"></div>
+          <img src="/logo1.png" class="sloth-logo"  alt="DevHub Sloth">
           <h1 class="platform-title">DEV<span>HUB</span></h1>
         </div>
         <div class="platform-description">
@@ -56,6 +57,28 @@
         </div>
       </div>
     </div>
+    <div v-if="showTimeModal" class="modal-overlay" @click.self="showTimeModal = false">
+    <div class="modal-content">
+      <h3>Log Your Coding Time</h3>
+      <div class="time-input">
+        <label for="hours">Hours:</label>
+        <input type="number" id="hours" v-model.number="hours" min="0" max="24" placeholder="0">
+        
+        <label for="minutes">Minutes:</label>
+        <input type="number" id="minutes" v-model.number="minutes" min="0" max="59" placeholder="0">
+      </div>
+      
+      <!-- Validation Error Message -->
+      <div v-if="validationError" class="validation-error">
+        {{ validationError }}
+      </div>
+      
+      <div class="modal-actions">
+        <button @click="logCodingTime" class="btn submit-btn">Submit</button>
+        <button @click="showTimeModal = false" class="btn cancel-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
   </div>
 </template>
   
@@ -63,13 +86,17 @@
   import { ref, onMounted, onUnmounted} from 'vue'
   import { useRouter,useRoute } from 'vue-router'
   import { getAuth } from 'firebase/auth'
-  import { doc, getDoc } from 'firebase/firestore'
+  import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore'
   import { db } from '../firebase'
   
   const route = useRoute()
   const router = useRouter()
   const userData = ref({})
   const canvas = ref(null) // This should be at the top with other refs
+  const showTimeModal = ref(false)
+  const hours = ref(0)
+  const minutes = ref(0)
+  const validationError = ref('');
 
   const defaultImage = 'https://via.placeholder.com/150'
   const userId = route.params.userId
@@ -91,6 +118,59 @@ let matrixChars = "01ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456
 const matrixFontSize = 14;
 const curentUserId = getAuth().currentUser.uid;
 console.log(curentUserId);
+async function logCodingTime() {
+  // Reset validation error
+  validationError.value = '';
+  
+  // Validate input
+  const hoursNum = parseInt(hours.value);
+  const minsNum = parseInt(minutes.value);
+  
+  if (isNaN(hoursNum) || isNaN(minsNum)) {
+    validationError.value = 'Please enter valid numbers';
+    return;
+  }
+  
+  if (hoursNum < 0 || minsNum < 0) {
+    validationError.value = 'Values cannot be negative';
+    return;
+  }
+  
+  if (minsNum > 59) {
+    validationError.value = 'Minutes must be between 0-59';
+    return;
+  }
+  
+  if (hoursNum === 0 && minsNum === 0) {
+    validationError.value = 'Please enter some time (cannot be 0:00)';
+    return;
+  }
+
+  try {
+    // Format the value string
+    const timeValue = `${hoursNum}:${minsNum.toString().padStart(2, '0')}`;
+    
+    // Get references
+    const userId = getAuth().currentUser.uid;
+    const userRef = doc(db, 'users', userId);
+    const codingTimeRef = collection(userRef, 'codingTime');
+    
+    // Add new document to subcollection
+    await addDoc(codingTimeRef, {
+      valeur: timeValue,
+      timestamp: serverTimestamp()
+    });
+    
+    // Reset and close
+    hours.value = 0;
+    minutes.value = 0;
+    showTimeModal.value = false;
+    
+  } catch (error) {
+    validationError.value = 'Failed to log coding time. Please try again.';
+    console.error('Error logging coding time:', error);
+  }
+}
 // Draw function (moved to root)
 function drawMatrixRain() {
   // Semi-transparent black overlay for trailing effect
@@ -185,6 +265,123 @@ onUnmounted(() => {
   </script>
   
   <style scoped>
+  .sloth-logo {
+  position: absolute;
+  width: 170px;
+  height: 170px;
+  left: 28%;
+  filter: drop-shadow(0 0 10px rgba(0, 102, 255, 0.7));
+  z-index: 0;
+}
+  .validation-error {
+  color: #ff4444;
+  margin: 10px 0;
+  padding: 10px;
+  background: rgba(255, 0, 0, 0.1);
+  border-left: 3px solid #ff4444;
+  text-align: center;
+}
+
+/* Make inputs display validation state */
+input:invalid {
+  border-color: #ff4444;
+}
+  .time-btn {
+  background: #0066ff;
+  color: white;
+  padding: 10px 10px;
+  border-radius: 0;
+  margin-top: 15px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s;
+  box-shadow: 0 5px 0 #0044cc;
+
+}
+
+.time-btn:hover {
+  background: #0066ff;
+  transform: translateY(2px);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: rgba(30, 30, 40, 0.95);
+  padding: 30px;
+  border-radius: 5px;
+  border-top: 3px solid #0066ff;
+  width: 400px;
+  max-width: 90%;
+}
+
+.modal-content h3 {
+  color: #00a2ff;
+  margin-bottom: 20px;
+  text-align: center;
+  font-size: 24px;
+}
+
+.time-input {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 15px;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.time-input label {
+  color: #e0e0e0;
+  font-size: 18px;
+}
+
+.time-input input {
+  background: rgba(20, 20, 30, 0.8);
+  border: 1px solid #0066ff;
+  color: white;
+  padding: 10px;
+  font-size: 16px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.submit-btn {
+  background: #0066ff;
+  color: white;
+  padding: 10px 20px;
+}
+
+.submit-btn:hover {
+  background: #0557d1;
+}
+
+.cancel-btn {
+  background: #f44336;
+  color: white;
+  padding: 10px 20px;
+}
+
+.cancel-btn:hover {
+  background: #d32f2f;
+}
   .back-btn{
     display: inline-flex;
   align-items: center;
@@ -286,10 +483,16 @@ onUnmounted(() => {
 }
 
 .floating-developer {
-  width: 80px;
-  height: 80px;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="40" r="20" fill="%2300a2ff" opacity="0.8"/><rect x="30" y="65" width="40" height="30" fill="%2300a2ff" opacity="0.6"/><rect x="35" y="70" width="10" height="15" fill="%23000000"/><rect x="55" y="70" width="10" height="15" fill="%23000000"/></svg>');
-  animation: float-small 6s ease-in-out infinite;
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  right: 10%;
+  top: 30%;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><path d="M120 80Q140 60 160 80L150 120Q130 140 110 120Z" fill="%231a1a2e" stroke="%230066ff" stroke-width="2"/><circle cx="130" cy="70" r="15" fill="%231a1a2e" stroke="%230066ff" stroke-width="1.5"/><circle cx="125" cy="65" r="3" fill="%230066ff"/><path d="M135 65L145 60" stroke="%230066ff" stroke-width="1.5" stroke-linecap="round"/><path d="M110 90L90 110" stroke="%230066ff" stroke-width="2" stroke-linecap="round"/><path d="M160 90L180 100" stroke="%230066ff" stroke-width="2" stroke-linecap="round"/><path d="M120 130L120 150" stroke="%230066ff" stroke-width="2" stroke-linecap="round"/></svg>');
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: 0;
+  animation: slow-blink 6s infinite;
 }
 
 .platform-title {

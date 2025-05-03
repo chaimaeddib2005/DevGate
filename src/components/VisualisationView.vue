@@ -4,7 +4,7 @@
         <i class="fas fa-arrow-left"></i> GO BACK
       </router-link>
     <div class="header">
-      <h2>My Progress Dashboard</h2>
+      <h2>Progress Dashboard</h2>
     </div>
 
     <div class="stats-overview">
@@ -81,7 +81,7 @@
 <script>
 import { Chart, registerables } from 'chart.js';
 import { db } from '../firebase';
-import { getDoc, doc, collection, query, where, getDocs } from 'firebase/firestore';
+import { getDoc, doc, collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 
 import { useRoute } from 'vue-router';
 
@@ -139,17 +139,22 @@ export default {
     async fetchCodingTime(userId) {
       try {
         const codingTimeRef = collection(db, 'users', userId, 'codingTime');
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const sevenDaysAgo = new Date(today);
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
+
+        const now = new Date();
+        const startDate = new Date(now);
+        startDate.setDate(startDate.getDate() - 6); // Last 7 days INCLUDING today
+        startDate.setHours(0, 0, 0, 0); // Start of first day
+        
+        // End of current day
+        now.setHours(23, 59, 59, 999);
         
         const q = query(
           codingTimeRef,
-          where('timestamp', '>=', sevenDaysAgo),
-          where('timestamp', '<=', today)
+          where('timestamp', '>=', startDate),
+          where('timestamp', '<=', now),
+          orderBy('timestamp', 'desc')
         );
-        
+
         const querySnapshot = await getDocs(q);
         let totalMinutes = 0;
         
