@@ -42,6 +42,10 @@ export default {
     this.getAllDocumentIds().then((ids) => {
       this.documentIds = ids
     });
+    window.scrollTo({
+    top: 0,
+    behavior: 'smooth' // optional: smooth scroll
+  });
   },
   methods: {
     async getAllDocumentIds() {

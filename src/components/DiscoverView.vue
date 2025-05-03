@@ -5,7 +5,7 @@
         <i class="fas fa-arrow-left"></i> GO BACK
       </router-link>
     </div>
-    <h1 class="cyber-discover-title">Découvrir des développeurs</h1>
+    <h1 class="cyber-discover-title">Discover new developpers</h1>
 
     <div class="cyber-user-grid">
       <div v-for="user in users" :key="user.id" class="cyber-user-card">
@@ -19,7 +19,7 @@
         <h2 class="cyber-user-name">{{ user.name }}</h2>
         <button @click="connectUser(user.id)" class="cyber-connect-btn">
           <i class="fas fa-user-plus cyber-btn-icon"></i>
-          <span class="cyber-btn-text">Connecter</span>
+          <span class="cyber-btn-text">Follow</span>
         </button>
       </div>
     </div>

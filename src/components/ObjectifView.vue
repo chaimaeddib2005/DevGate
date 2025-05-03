@@ -132,6 +132,7 @@ export default {
       } catch (error) {
         console.error('Error updating or logging modification:', error);
       }
+      window.location.reload();
     },
 
     async deleteObjectif(objectifId) {
@@ -156,6 +157,7 @@ export default {
       } catch (error) {
         console.error('Error removing document:', error);
       }
+      window.location.reload();
     },
 
     formatDate(timestamp) {

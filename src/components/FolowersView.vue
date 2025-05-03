@@ -5,12 +5,12 @@
         <i class="fas fa-arrow-left"></i> GO BACK
       </router-link>
     </div>
-    <h1 class="cyber-followers-title">Mes Followers</h1>
+    <h1 class="cyber-followers-title">Followers</h1>
 
-    <div v-if="loading" class="cyber-loading-message">Chargement...</div>
+    <div v-if="loading" class="cyber-loading-message">Loading...</div>
 
     <div v-else-if="followerUsers.length === 0" class="cyber-no-followers-message">
-      <p>Vous n'avez pas encore de followers.</p>
+      <p>There is no followers</p>
     </div>
 
     <div v-else class="cyber-user-grid">

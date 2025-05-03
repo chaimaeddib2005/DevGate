@@ -82,7 +82,7 @@ export default {
           objectifs: arrayUnion(objectifRef.id),
           timeline: arrayUnion(timeref.id),
         });
-        this.$router.push('/objectifs'); // Redirect to objectif list
+        this.$router.push('/objectifs/'+user.uid); // Redirect to objectif list
       } catch (error) {
         console.error('Error adding objectif: ', error);
       }

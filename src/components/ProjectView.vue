@@ -115,7 +115,7 @@ export default {
   },
 
   mounted() {
-    console.log(this.isOwner);
+    console.log(this.isOwner)
     if (this.projectId) {
       this.fetchProject();
     }
@@ -199,6 +199,7 @@ export default {
       } catch (error) {
         console.error('Update failed:', error);
       }
+      window.location.reload();
     },
 
     async deleteProject(id) {
@@ -224,6 +225,7 @@ export default {
       } catch (error) {
         console.error('Delete failed:', error);
       }
+      window.location.reload();
     },
   },
 };

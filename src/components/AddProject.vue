@@ -98,7 +98,7 @@ export default {
           projects: arrayUnion(projectRef.id),
           timeline: arrayUnion(timeref.id),
         });
-        this.$router.push('/projects'); // Redirect to project list
+        this.$router.push('/projects/'+user.uid); // Redirect to project list
       } catch (error) {
         console.error('Error adding project: ', error);
       }

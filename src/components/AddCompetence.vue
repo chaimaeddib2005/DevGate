@@ -67,7 +67,7 @@ export default {
           compétences: arrayUnion(competenceRef.id),
           timeline: arrayUnion(timeref.id),
         });
-        this.$router.push('/Competences'); // Redirect to competence list
+        this.$router.push('/Competences/'+user.uid); // Redirect to competence list
       } catch (error) {
         console.error('Error adding competence: ', error);
       }
