@@ -1,5 +1,6 @@
 <template>
   <div class="container">
+    
     <!-- Developer Animation Background Elements -->
     <div class="developer-animation"></div>
     <div class="code-rain">
@@ -7,13 +8,16 @@
 
     </div>
     <aside class="profile">
+      <router-link to="/discover" class="btn back-btn" v-if="!isanOwner" >
+        <i class="fas fa-arrow-left"></i> GO BACK
+      </router-link>
       <img :src="userData.photoURL || defaultImage" alt="profile" class="profile-img" />
       <h2>{{ userData.name }}</h2>
       <p>{{ userData.email }}</p>
       <p>LinkedIn : <a>{{ userData.linkedin }}</a></p> 
       <p>description : {{ userData.description }}</p>
       
-      <button @click="goToEditProfile" class="btn edit-btn">Éditer Profil</button>
+      <button @click="goToEditProfile" v-if="isanOwner" class="btn edit-btn">Edit Profil</button>
 
       <div class="follows">
         <div @click="goToFollowings" class="follow-item">
@@ -38,7 +42,7 @@
         </div>
       </div>
       
-      <div class="top-bar">
+      <div class="top-bar" v-if="isanOwner">
         <button @click="goToDiscover" class="btn discover-btn">Discover</button>
       </div>
   
@@ -57,34 +61,36 @@
   
   <script setup>
   import { ref, onMounted, onUnmounted} from 'vue'
-  import { useRouter } from 'vue-router'
+  import { useRouter,useRoute } from 'vue-router'
   import { getAuth } from 'firebase/auth'
   import { doc, getDoc } from 'firebase/firestore'
   import { db } from '../firebase'
   
+  const route = useRoute()
   const router = useRouter()
   const userData = ref({})
   const canvas = ref(null) // This should be at the top with other refs
 
   const defaultImage = 'https://via.placeholder.com/150'
-  
+  const userId = route.params.userId
   const navItems = [
-  { title: 'Compétences', route: '/Competences', icon: 'fas fa-tools', description: 'Gérez vos compétences.' },
-  { title: 'Projets', route: '/projects', icon: 'fas fa-rocket', description: 'Partagez vos projets.' },
-  { title: 'Activité', route: '/timeline', icon: 'fas fa-chart-line', description: 'Suivez votre activité.' },
-  { title: 'Objectifs', route: '/objectifs', icon: 'fas fa-bullseye', description: 'Atteignez vos objectifs.' },
-  {title:'Visualization',route:'/visualize',icon:'fas fa-eye',description:'visualize you progress'}
+  { title: 'Compétences', route: '/Competences/'+userId, icon: 'fas fa-tools', description: 'Gérez vos compétences.' },
+  { title: 'Projets', route: '/projects/'+userId, icon: 'fas fa-rocket', description: 'Partagez vos projets.' },
+  { title: 'Activité', route: '/timeline/'+userId, icon: 'fas fa-chart-line', description: 'Suivez votre activité.' },
+  { title: 'Objectifs', route: '/objectifs/'+userId, icon: 'fas fa-bullseye', description: 'Atteignez vos objectifs.' },
+  {title:'Visualization',route:'/visualize/'+userId,icon:'fas fa-eye',description:'visualize you progress'}
 ]
 
 
 let animationInterval = null;
-
+const isanOwner = ref(false);
 // Matrix rain variables
 let matrixCtx = null;
 let matrixDrops = [];
 let matrixChars = "01ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789@#$%^&*()";
 const matrixFontSize = 14;
-
+const curentUserId = getAuth().currentUser.uid;
+console.log(curentUserId);
 // Draw function (moved to root)
 function drawMatrixRain() {
   // Semi-transparent black overlay for trailing effect
@@ -123,10 +129,15 @@ function handleMatrixResize() {
 
 onMounted(async () => {
   // Load user data
-  const auth = getAuth();
-  const user = auth.currentUser;
-  if (user) {
-    const userRef = doc(db, 'users', user.uid);
+  const Cuuser = getAuth().currentUser
+  isanOwner.value = Cuuser && Cuuser.uid === route.params.userId
+ 
+  console.log(isanOwner);
+  console.log(route.params.userId)
+  const userId = route.params.userId
+  
+  if (userId) {
+    const userRef = doc(db, 'users', userId);
     const userSnap = await getDoc(userRef);
     if (userSnap.exists()) {
       userData.value = userSnap.data();
@@ -162,28 +173,46 @@ onUnmounted(() => {
   }
 
   function goToFollowings() {
-     router.push('/followings')
+     const userId = route.params.userId;
+     router.push('/followings/'+userId)
   }
 
   function goToFollowers() {
-     router.push('/followers')
+    const userId = route.params.userId;
+     router.push('/followers/'+userId)
   }
 
-  
-  onMounted(async () => {
-    const auth = getAuth()
-    const user = auth.currentUser
-    if (user) {
-      const userRef = doc(db, 'users', user.uid)
-      const userSnap = await getDoc(userRef)
-      if (userSnap.exists()) {
-        userData.value = userSnap.data()
-      }
-    }
-  })
   </script>
   
   <style scoped>
+  .back-btn{
+    display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
+  text-decoration: none;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s;
+  border-radius: 0;
+}
+
+.back-btn {
+  background: rgba(50, 50, 50, 0.7);
+  color: #eee;
+  border: 2px solid #777;
+  margin-right: 1rem;
+}
+
+.back-btn:hover {
+  background: rgba(70, 70, 70, 0.9);
+  text-shadow: none;
+  animation: none;
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
 /* Base Container */
 * {
   margin: 0; 
@@ -521,4 +550,5 @@ onUnmounted(() => {
 .block:hover {
   animation: glitch 0.5s linear infinite;
 }
+
   </style>

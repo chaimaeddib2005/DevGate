@@ -1,7 +1,7 @@
 <template>
   <div class="cyber-discover-container">
     <div class="cyber-controls">
-      <router-link to="/home" class="btn back-btn">
+      <router-link :to="`/home/${auth.currentUser.uid}`" class="btn back-btn">
         <i class="fas fa-arrow-left"></i> GO BACK
       </router-link>
     </div>
@@ -10,7 +10,7 @@
     <div class="cyber-user-grid">
       <div v-for="user in users" :key="user.id" class="cyber-user-card">
         <div class="cyber-user-image-wrapper">
-          <img
+          <img @click="GoToprofile(user.id)"
             :src="user.photoURL || defaultPhoto"
             alt="photo de profil"
             class="cyber-user-image"
@@ -34,18 +34,36 @@ import { ref, onMounted } from 'vue';
 import { collection, getDocs, doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { db } from '../firebase';
-
+import {useRouter} from 'vue-router'
+const router = useRouter();
+const auth = getAuth();
 const users = ref([]);
 const defaultPhoto = 'https://via.placeholder.com/150'; // Default image if no photoURL
 
 // Load users
 onMounted(async () => {
+  const auth = getAuth();
+  const currentUser = auth.currentUser;
+
   const querySnapshot = await getDocs(collection(db, 'users'));
-  users.value = querySnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data(),
-  }));
+
+  users.value = querySnapshot.docs
+    .filter(doc => doc.id !== currentUser?.uid)
+    .map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+ 
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth',
+  });
 });
+async function GoToprofile(Id){
+  router.push('/home/'+Id);
+
+}
 
 // Function to connect to a user
 async function connectUser(otherUserId) {
@@ -70,9 +88,7 @@ async function connectUser(otherUserId) {
 /* Cyber/Developer Theme Styles for Discover Developers */
 .cyber-discover-container {
   padding: 2rem;
-  background: rgba(10, 10, 20, 0.7);
-  border: 1px solid rgba(0, 102, 255, 0.3);
-  box-shadow: 0 0 30px rgba(0, 102, 255, 0.1);
+  background: rgba(10, 10, 20);
   min-height: 100vh;
 }
 
@@ -124,11 +140,9 @@ async function connectUser(otherUserId) {
 }
 
 .cyber-user-card {
-  background: rgba(20, 20, 30, 0.9);
+  background: rgba(20, 20, 30, 0.6);
   padding: 2rem;
-  border: 1px solid #0066ff;
-  border-radius: 0;
-  box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -138,7 +152,6 @@ async function connectUser(otherUserId) {
 
 .cyber-user-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 0 25px rgba(0, 102, 255, 0.5);
 }
 
 .cyber-user-image-wrapper {

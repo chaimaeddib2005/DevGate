@@ -1,12 +1,12 @@
 <template>
   <div class="cyber-projects-container">
     <div class="cyber-controls">
-      <router-link to="/home" class="btn back-btn">
+      <router-link :to="`/home/${userId}`" class="btn back-btn">
         <i class="fas fa-arrow-left"></i> Back
       </router-link>
-      <router-link to="/AddProject" class="cyber-add-btn">
+      <router-link to="/AddProject" class="cyber-add-btn" v-if="isOwner">
         <i class="fas fa-plus-circle cyber-btn-icon"></i>
-        <span class="cyber-btn-text">Add Project</span>
+        <span class="cyber-btn-text" >Add Project</span>
       </router-link>
       <div class="cyber-view-selector">
         <label for="viewType" class="cyber-label">View:</label>
@@ -19,7 +19,7 @@
 
     <div v-if="projectIds.length" :class="['cyber-project-list', `cyber-view-${viewType}`]">
       <div v-for="id in projectIds" :key="id" class="cyber-card-container">
-        <projectView :projectId="id" />
+        <projectView :projectId="id" :isOwner ="isOwner"/>
       </div>
     </div>
 
@@ -32,6 +32,7 @@ import { db } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import ProjectView from './ProjectView.vue';
+import { useRoute } from 'vue-router'
 
 export default {
   components: {
@@ -41,18 +42,26 @@ export default {
     return {
       projectIds: [], // Holds Project Document IDs
       viewType: 'list', // Default view type
+      userId:"",
+      isOwner: false,
+      route : useRoute()
     };
   },
   mounted() {
+    console.log("🐺🐺🐺🐺🐺🐺🐺🐺🐺🐺currentUser",getAuth().currentUser.uid);
     this.getAllDocumentIds().then((ids) => {
       this.projectIds = ids;
     });
   },
   methods: {
     async getAllDocumentIds() {
-      const user = getAuth().currentUser;
+      const Cuuser = getAuth().currentUser;
+      const userId = this.route.params.userId;
+      this.userId = userId;
+      this.isOwner = Cuuser && Cuuser.uid === userId;
+      console.log(this.isOwner)
       try {
-        const userRef = doc(db, 'users', user.uid);
+        const userRef = doc(db, 'users', userId);
         const userDoc = await getDoc(userRef);
         const projects = userDoc.data().projects || []; // Fetch Project IDs from user document
         return projects;
@@ -68,15 +77,15 @@ export default {
 <style scoped>
 /* Cyber/Developer Theme Styles for Projects */
 .cyber-projects-container {
-  max-width: 1200px;
+  min-height: 100vh; /* Minimum height = full viewport height */
+  width: 100%;
   margin: 0 auto;
   padding: 2rem;
   position: relative;
   z-index: 1;
-  background: rgba(10, 10, 20, 0.6);
-  border: 1px solid rgba(0, 102, 255, 0.3);
-  box-shadow: 0 0 30px rgba(0, 102, 255, 0.1);
+  background: rgba(10, 10, 20);
 }
+
 
 .cyber-controls {
   display: flex;
@@ -132,7 +141,6 @@ export default {
 .cyber-add-btn:hover {
   background: rgba(0, 102, 255, 0.3);
   text-shadow: 0 0 10px rgba(0, 102, 255, 0.7);
-  box-shadow: 0 0 15px rgba(0, 102, 255, 0.4);
   transform: translateY(-2px);
 }
 
@@ -177,7 +185,6 @@ export default {
   border-radius: 0;
   background-color: rgba(20, 20, 30, 0.8);
   color: #fff;
-  font-family: 'Roboto Mono', monospace;
   font-size: 1rem;
   appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300a2ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
@@ -200,16 +207,13 @@ export default {
 /* List View */
 .cyber-view-list .cyber-card-container {
   background: rgba(20, 20, 30, 0.7);
-  border: 1px solid #0066ff;
   margin-bottom: 2rem;
   position: relative;
   transition: all 0.4s ease;
-  box-shadow: 0 0 20px rgba(0, 102, 255, 0.2);
   overflow: hidden;
 }
 
 .cyber-view-list .cyber-card-container:hover {
-  box-shadow: 0 0 30px rgba(0, 102, 255, 0.5);
   border-color: #00a2ff;
 }
 
@@ -245,16 +249,13 @@ export default {
 
 .cyber-view-gallery .cyber-card-container {
   background: rgba(20, 20, 30, 0.7);
-  border: 1px solid #0066ff;
   position: relative;
   transition: all 0.4s ease;
-  box-shadow: 0 0 20px rgba(0, 102, 255, 0.2);
   display: flex; /* Enable flexbox for content layout */
   flex-direction: column; /* Stack content vertically */
 }
 
 .cyber-view-gallery .cyber-card-container:hover {
-  box-shadow: 0 0 30px rgba(0, 102, 255, 0.5);
   border-color: #00a2ff;
 }
 
@@ -328,9 +329,7 @@ export default {
   transform: translateY(-2px);
 }
 
-.cyber-card-container:hover {
-  animation: cyber-glitch 0.5s linear infinite;
-}
+
 
 @media (max-width: 768px) {
   .cyber-projects-container {
@@ -351,5 +350,10 @@ export default {
   .cyber-view-gallery {
     grid-template-columns: 1fr;
   }
+}
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 </style>

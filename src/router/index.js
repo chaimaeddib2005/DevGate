@@ -21,19 +21,19 @@ const routes = [
     component: LoginPage
   },
   {
-    path:'/visualize',
+    path:'/visualize/:userId',
     component: Visualization
   },
   {
-    path: '/home',
+    path: '/home/:userId',
     component: HomePage,
   },
   {
-    path: '/timeline',
+    path: '/timeline/:userId',
     component: TimeLine,
   },
   {
-    path: '/Competences',
+    path: '/Competences/:userId',
     component: CompetencesView,
  
   },
@@ -42,7 +42,7 @@ const routes = [
     component: AddCompetence
   },
   {
-    path: '/objectifs',
+    path: '/objectifs/:userId',
     component: ObjectifsView,
   
   },
@@ -53,7 +53,7 @@ const routes = [
     }
   ,
   {
-    path: '/projects',
+    path: '/projects/:userId',
     component: ProjectsView,
    
   },
@@ -70,12 +70,12 @@ const routes = [
     component:EditProfile,
   },
   {
-    path:'/followings',
+    path:'/followings/:userId',
     component: FolowingsView,
 
   },
   {
-    path:'/followers',
+    path:'/followers/:userId',
     component: FolowersView,
   },
   {

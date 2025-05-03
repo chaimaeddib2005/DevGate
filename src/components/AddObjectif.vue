@@ -1,7 +1,7 @@
 <template>
   <div class="cyber-add-objectif-container">
     <div class="cyber-controls">
-      <router-link to="/objectifs" class="btn back-btn">
+      <router-link :to="`/objectifs/${userId}`" class="btn back-btn">
         <i class="fas fa-arrow-left"></i> Back
       </router-link>
     </div>
@@ -47,7 +47,9 @@ import { getAuth } from 'firebase/auth';
 
 export default {
   data() {
+   
     return {
+      userId: "",
       objectif: {
         name: '',
         status: 'in progress',
@@ -55,6 +57,12 @@ export default {
         created: serverTimestamp(),
       },
     };
+  },
+  async mounted(){
+    const user = getAuth().currentUser;
+    if(user){
+      this.userId = user.uid;
+    }
   },
   methods: {
     async addObjectif() {
@@ -85,13 +93,12 @@ export default {
 
 <style scoped>
 /* Cyber/Developer Theme Styles for Add Objectif */
+
 .cyber-add-objectif-container {
-  max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
-  background: rgba(10, 10, 20, 0.7);
-  border: 1px solid rgba(0, 102, 255, 0.3);
-  box-shadow: 0 0 30px rgba(0, 102, 255, 0.1);
+  background: rgba(10, 10, 20);
+  height: 1000px;
 }
 
 .cyber-controls {
@@ -150,7 +157,6 @@ export default {
   color: #eee;
   font-weight: bold;
   font-size: 0.9rem;
-  font-family: 'Roboto Mono', monospace;
 }
 
 .cyber-form-input,
@@ -160,7 +166,6 @@ export default {
   border-radius: 0;
   background-color: rgba(20, 20, 30, 0.8);
   color: #fff;
-  font-family: 'Roboto Mono', monospace;
   font-size: 1rem;
   transition: all 0.3s ease;
 }

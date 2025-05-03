@@ -1,6 +1,6 @@
 <template>
   <div class="cyber-add-competence">
-    <router-link to="/Competences" class="btn back-btn">
+    <router-link :to="`/Competences/${userId}`" class="btn back-btn">
       <i class="fas fa-arrow-left"></i> Back
     </router-link>
 
@@ -33,12 +33,20 @@ import { getAuth } from 'firebase/auth';
 export default {
   data() {
     return {
+      userId: "",
       competence: {
         name: '',
         level: 'beginner',
         created: serverTimestamp(),
+        
       },
     };
+  },
+  async mounted(){
+        const user = getAuth().currentUser;
+      if (user) {
+        this.userId = user.uid;
+      }
   },
   methods: {
     async addCompetence() {
@@ -53,6 +61,7 @@ export default {
           type: 'add',
         });
         const user = getAuth().currentUser;
+      
         const userRef = doc(db, 'users', user.uid);
         await updateDoc(userRef, {
           compétences: arrayUnion(competenceRef.id),
@@ -70,14 +79,10 @@ export default {
 <style scoped>
 /* Cyber/Developer Theme Styles for Add Competence */
 .cyber-add-competence {
-  max-width: 600px;
-  margin: 2rem auto;
   padding: 2.5rem;
   position: relative;
   z-index: 1;
-  background: rgba(10, 10, 20, 0.7);
-  border: 1px solid rgba(0, 102, 255, 0.4);
-  box-shadow: 0 0 30px rgba(0, 102, 255, 0.2);
+  background: rgba(10, 10, 20);
 }
 
 .back-btn {
@@ -86,7 +91,6 @@ export default {
   gap: 0.5rem;
   padding: 0.7rem 1.2rem;
   text-decoration: none;
-  font-family: 'Roboto Mono', monospace;
   font-weight: bold;
   letter-spacing: 0.5px;
   border-radius: 0;
@@ -168,6 +172,17 @@ select.cyber-form-input {
   background-position: right 0.75rem center;
   background-size: 1rem;
 }
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.cyber-add-competence {
+  min-height: 100vh;
+  background: rgba(10, 10, 20); /* already present */
+}
+
 
 .cyber-submit-button {
   background-color: rgba(0, 102, 255, 0.2);

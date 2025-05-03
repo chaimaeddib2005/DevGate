@@ -1,7 +1,7 @@
 <template>
   <div class="cyber-timeline-container">
     <div class="cyber-controls">
-      <router-link to="/home" class="btn back-btn">
+      <router-link :to="`/home/${userId}`" class="btn back-btn">
         <i class="fas fa-arrow-left"></i> GO BACK
       </router-link>
     </div>
@@ -39,11 +39,14 @@
 <script>
 import { db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+
+import{useRoute} from 'vue-router';
 
 export default {
   data() {
     return {
+      userId:"",
+      route : useRoute(),
       events: [],
       userReady: false,
       selectedFilter: '', // for filtering by type
@@ -64,21 +67,21 @@ export default {
   },
 
   async created() {
-    const auth = getAuth();
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        await this.fetchEvents(user.uid);
+    this.userId = this.route.params.userId; 
+
+      if (this.userId) {
+        await this.fetchEvents(this.userId);
         this.userReady = true;
       }
-    });
+
   },
 
   methods: {
     async fetchEvents() {
       try {
-        const userId = getAuth().currentUser.uid;
 
-        const userRef = doc(db, 'users', userId);
+
+        const userRef = doc(db, 'users', this.userId);
         const userSnap = await getDoc(userRef);
 
         if (!userSnap.exists()) {
@@ -128,12 +131,10 @@ export default {
 <style scoped>
 /* Cyber/Developer Theme Styles for Timeline */
 .cyber-timeline-container {
-  max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
-  background: rgba(10, 10, 20, 0.7);
-  border: 1px solid rgba(0, 102, 255, 0.3);
-  box-shadow: 0 0 30px rgba(0, 102, 255, 0.1);
+  background: rgba(10, 10, 20);
+  min-height: 100vh;
 }
 
 .cyber-controls {
@@ -157,7 +158,11 @@ export default {
   border: 2px solid #777;
   margin-right: 1rem;
 }
-
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
 .back-btn:hover {
   background: rgba(70, 70, 70, 0.9);
   text-shadow: none;
@@ -185,7 +190,6 @@ export default {
 
 .cyber-label {
   color: #eee;
-  font-family: 'Roboto Mono', monospace;
   font-weight: bold;
   font-size: 0.9rem;
 }
@@ -196,7 +200,6 @@ export default {
   border-radius: 0;
   background-color: rgba(20, 20, 30, 0.8);
   color: #fff;
-  font-family: 'Roboto Mono', monospace;
   font-size: 1rem;
   transition: all 0.3s ease;
   appearance: none;
@@ -209,7 +212,6 @@ export default {
 .cyber-select:focus {
   outline: none;
   border-color: #00a2ff;
-  box-shadow: 0 0 10px rgba(0, 102, 255, 0.7);
 }
 
 .cyber-event-list {
@@ -220,16 +222,13 @@ export default {
 
 .cyber-event-card {
   padding: 1.5rem;
-  background: rgba(20, 20, 30, 0.9);
-  border: 1px solid #0066ff;
-  border-radius: 0;
-  box-shadow: 0 0 10px rgba(0, 102, 255, 0.3);
+  background: rgba(47, 47, 55, 0.4);
+  border-radius: 8px;
   transition: all 0.3s ease;
 }
 
 .cyber-event-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 15px rgba(0, 102, 255, 0.5);
 }
 
 .cyber-event-info {
@@ -241,7 +240,6 @@ export default {
 .cyber-event-message {
   color: #00a2ff;
   font-weight: bold;
-  font-family: 'Roboto Mono', monospace;
 }
 
 .cyber-event-timestamp {

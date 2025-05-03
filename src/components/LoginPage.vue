@@ -36,7 +36,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { login } from '@/composables/AuthService'
 import { useRouter } from 'vue-router'
-
+import {getAuth} from 'firebase/auth'
 const email = ref('')
 const password = ref('')
 const error = ref('')
@@ -97,7 +97,8 @@ const handleLogin = async () => {
 
   try {
     await login(email.value, password.value);
-    router.push('/home');
+    const currentUser = getAuth().currentUser;
+    router.push('/home/'+`${currentUser.uid}`);
   } catch (err) {
     if (err.code === 'auth/user-not-found') {
       error.value = "No account found with this email.";

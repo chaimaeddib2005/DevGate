@@ -1,6 +1,6 @@
 <template>
   <div class="cyber-add-project">
-    <router-link to="/projects" class="btn back-btn">
+    <router-link :to="`/projects/${userId}`" class="btn back-btn">
       <i class="fas fa-arrow-left"></i> Back
     </router-link>
 
@@ -49,6 +49,7 @@ import { getAuth } from 'firebase/auth';
 export default {
   data() {
     return {
+      userId: "",
       project: {
         name: '',
         description: '',
@@ -59,6 +60,12 @@ export default {
       },
       toolsInput: '',
     };
+  },
+  async mounted(){
+    const user = getAuth().currentUser;
+    if(user){
+      this.userId = user.uid;
+    }
   },
   methods: {
     parseTools() {
@@ -103,12 +110,8 @@ export default {
 <style scoped>
 /* Cyber/Developer Theme Styles for Add Project Form */
 .cyber-add-project {
-  max-width: 800px;
-  margin: 2rem auto;
   padding: 2rem;
-  background: rgba(10, 10, 20, 0.7);
-  border: 1px solid rgba(0, 102, 255, 0.3);
-  box-shadow: 0 0 30px rgba(0, 102, 255, 0.15);
+  background: rgba(10, 10, 20);
   position: relative; /* For positioning the back button */
 }
 
@@ -118,7 +121,6 @@ export default {
   gap: 0.5rem;
   padding: 0.7rem 1.2rem;
   text-decoration: none;
-  font-family: 'Roboto Mono', monospace;
   font-weight: bold;
   letter-spacing: 0.5px;
   border-radius: 0;
@@ -176,7 +178,6 @@ export default {
   border-radius: 0;
   background-color: rgba(20, 20, 30, 0.8);
   color: #fff;
-  font-family: 'Roboto Mono', monospace;
   font-size: 1rem;
   transition: border-color 0.3s, box-shadow 0.3s;
 }

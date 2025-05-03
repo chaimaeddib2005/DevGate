@@ -2,11 +2,11 @@
   <div v-if="objectifId" class="cyber-objectif-card-container">
     <div v-if="!editmode" class="cyber-objectif-card">
       <div class="cyber-card-actions">
-        <button @click="deleteObjectif(objectifId)" class="cyber-delete-btn">
+        <button @click="deleteObjectif(objectifId)" class="cyber-delete-btn" v-if="isOwner">
           <i class="fas fa-trash-alt cyber-btn-icon"></i>
           <span class="cyber-btn-text">Delete</span>
         </button>
-        <button @click="editmode = !editmode" class="cyber-edit-btn">
+        <button @click="editmode = !editmode" class="cyber-edit-btn" v-if="isOwner">
           <i class="fas fa-edit cyber-btn-icon"></i>
           <span class="cyber-btn-text">Edit</span>
         </button>
@@ -67,6 +67,10 @@ import { getAuth } from 'firebase/auth';
 
 export default {
   props: {
+    isOwner:{
+      type:Boolean,
+      required:true,
+    },
     objectifId: {
       type: String,
       required: true,
@@ -166,17 +170,15 @@ export default {
 <style scoped>
 /* Cyber/Developer Theme Styles for Objectif Card */
 .cyber-objectif-card-container {
-  background: rgba(20, 20, 30, 0.7);
-  border: 1px solid #0066ff;
+  background: rgba(47, 47, 55, 0.3);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  border-radius: 0;
-  box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);
+  border-radius: 8px;
   transition: all 0.3s ease;
+  width: 450px;
 }
 
 .cyber-objectif-card-container:hover {
-  box-shadow: 0 0 25px rgba(0, 102, 255, 0.5);
   transform: translateY(-2px);
 }
 
@@ -188,35 +190,26 @@ export default {
 
 .cyber-delete-btn,
 .cyber-edit-btn {
+  background-color: rgba(20, 20, 30, 0.0);
+  border: none;
   display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.5rem 1rem;
-  border: 1px solid #ff4d4d;
-  background-color: rgba(255, 77, 77, 0.1);
   color: #ff4d4d;
   font-family: 'Roboto Mono', monospace;
   font-size: 0.8rem;
-  border-radius: 0;
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
 .cyber-edit-btn {
   border-color: #00a2ff;
-  background-color: rgba(0, 162, 255, 0.1);
   color: #00a2ff;
 }
 
 .cyber-delete-btn:hover,
 .cyber-edit-btn:hover {
-  background-color: rgba(20, 20, 30, 0.9);
-  box-shadow: 0 0 8px rgba(255, 77, 77, 0.7);
   transform: translateY(-1px);
 }
-.cyber-edit-btn:hover {
-  box-shadow: 0 0 8px rgba(0, 162, 255, 0.7);
-}
+
 
 .cyber-btn-icon {
   font-size: 0.9rem;
@@ -237,7 +230,9 @@ export default {
   color: #eee;
   margin-bottom: 0.3rem;
 }
-
+.cyber-label{
+  color: white;
+}
 .cyber-objectif-status span {
   font-weight: bold;
 }

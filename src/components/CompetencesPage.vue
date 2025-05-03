@@ -1,16 +1,16 @@
 <template>
   <div class="competence-list-container">
-    <router-link to="/home" class="btn back-btn">
+    <router-link :to="`/home/${userId}`" class="btn back-btn">
       <i class="fas fa-arrow-left"></i> Back
     </router-link>
 
-    <router-link to="/AddCompetence" class="btn add-competence-btn">
+    <router-link to="/AddCompetence" class="btn add-competence-btn" v-if="isOwner">
       <i class="fas fa-plus"></i> Add Competence
     </router-link>
 
     <div v-if="documentIds.length" class="competence-grid">
       <div v-for="id in documentIds" :key="id" class="competence-card-wrapper">
-        <CompetenceView :competenceId="id" />
+        <CompetenceView :competenceId="id" :isOwner="isOwner"/>
       </div>
     </div>
 
@@ -24,6 +24,7 @@ import { db } from '@/firebase';
 import { getDoc, doc } from 'firebase/firestore';
 import CompetenceView from './CompetenceView.vue';
 import { getAuth } from 'firebase/auth';
+import { useRoute } from 'vue-router'
 
 export default {
   components: {
@@ -31,20 +32,26 @@ export default {
   },
   data() {
     return {
+      isOwner: false,
       documentIds: [],
-    };
+      route: useRoute(),
+      userId: ""
+    }
   },
   mounted() {
     this.getAllDocumentIds().then((ids) => {
-      this.documentIds = ids;
+      this.documentIds = ids
     });
   },
   methods: {
     async getAllDocumentIds() {
-      const user = getAuth().currentUser;
-      console.log(user);
+      const Cuuser = getAuth().currentUser;
+      const userId = this.route.params.userId;
+      this.userId = userId;
+      this.isOwner = Cuuser && Cuuser.uid === userId;
+      console.log(this.isOwner)
       try {
-        const userRef = doc(db, 'users', user.uid);
+        const userRef = doc(db, 'users', userId);
         const userDoc = await getDoc(userRef);
         const competences = userDoc.data().compétences || [];
         return competences;
@@ -55,16 +62,18 @@ export default {
     },
   },
 };
+
 </script>
 
 <style scoped>
 /* Cyber/Developer Theme Styles */
 .competence-list-container {
-  max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
   position: relative;
   z-index: 1;
+  background: rgba(10, 10, 20);
+  height: 999px;
 }
 
 .back-btn,
@@ -99,16 +108,13 @@ export default {
 
 .add-competence-btn {
   background: rgba(0, 102, 255, 0.2);
-  color: #00a2ff;
+  color: #1692d9;
   border: 2px solid #0066ff;
 }
 
 .add-competence-btn:hover {
   background: rgba(0, 102, 255, 0.3);
-  text-shadow: 0 0 8px rgba(0, 102, 255, 0.7);
-  animation: glitch 0.5s linear infinite;
   transform: translateY(-2px);
-  box-shadow: 0 2px 5px rgba(0, 102, 255, 0.3);
 }
 
 .competence-grid {
@@ -120,14 +126,12 @@ export default {
 
 .competence-card-wrapper {
   background: rgba(20, 20, 30, 0.7);
-  border: 1px solid #0066ff;
+  border-radius: 8px;
   position: relative;
   transition: all 0.3s ease;
-  box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);
 }
 
 .competence-card-wrapper:hover {
-  box-shadow: 0 0 25px rgba(0, 102, 255, 0.5);
   transform: translateY(-5px);
 }
 

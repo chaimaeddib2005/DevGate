@@ -1,17 +1,17 @@
 <template>
   <div class="cyber-objectifs-container">
     <div class="cyber-controls">
-      <router-link to="/home" class="btn back-btn">
+      <router-link :to="`/home/${userId}`" class="btn back-btn">
         <i class="fas fa-arrow-left"></i> GO BACK
       </router-link>
-      <router-link to="/AddObjectif" class="cyber-add-btn">
+      <router-link to="/AddObjectif" class="cyber-add-btn" v-if="isOwner">
         <i class="fas fa-plus-circle cyber-btn-icon"></i>
         <span class="cyber-btn-text">Add Objectif</span>
       </router-link>
     </div>
     <div v-if="documentIds.length" class="cyber-objectif-list">
       <div v-for="id in documentIds" :key="id" class="cyber-objectif-card-wrapper">
-        <objectifView :objectifId="id" />
+        <objectifView :objectifId="id" :isOwner="isOwner"/>
       </div>
     </div>
     <div v-else class="cyber-empty-message">
@@ -26,6 +26,7 @@ import { db } from '@/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import ObjectifView from './ObjectifView.vue';
+import {useRoute} from 'vue-router'
 
 export default {
   components: {
@@ -33,6 +34,9 @@ export default {
   },
   data() {
     return {
+      userId:"",
+      isOwner:false,
+      route : useRoute(),
       documentIds: [], // Holds Objectif Document IDs
     };
   },
@@ -40,12 +44,19 @@ export default {
     this.getAllDocumentIds().then((ids) => {
       this.documentIds = ids;
     });
-  },
+    window.scrollTo({
+    top: 0,
+    behavior: 'smooth' // optional: smooth scroll
+  });
+},
   methods: {
     async getAllDocumentIds() {
-      const user = getAuth().currentUser;
+      const Cuuser = getAuth().currentUser;
+      const userId = this.route.params.userId;
+      this.userId = userId;
+      this.isOwner = Cuuser && Cuuser.uid === userId;
       try {
-        const userRef = doc(db, 'users', user.uid);
+        const userRef = doc(db, 'users', userId);
         const userDoc = await getDoc(userRef);
         const objectifs = userDoc.data().objectifs || []; // Fetch Objectif IDs from user document
         console.log('Objectif IDs:', objectifs); // Log the fetched IDs
@@ -62,12 +73,10 @@ export default {
 <style scoped>
 /* Cyber/Developer Theme Styles for Objectifs List */
 .cyber-objectifs-container {
-  max-width: 900px;
   margin: 0 auto;
   padding: 2rem;
-  background: rgba(10, 10, 20, 0.7);
-  border: 1px solid rgba(0, 102, 255, 0.3);
-  box-shadow: 0 0 30px rgba(0, 102, 255, 0.1);
+  background: rgba(10, 10, 20);
+  height: 1000px;
 }
 
 .cyber-controls {
@@ -153,8 +162,8 @@ export default {
 .cyber-objectif-list {
   margin-top: 2rem;
   display: flex;
-  flex-direction: column;
   gap: 1.5rem;
+
 }
 
 .cyber-objectif-card-wrapper {

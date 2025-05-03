@@ -3,7 +3,7 @@
     <div v-if="!editmode" class="cyber-card">
       <div class="cyber-card-header">
         <h2 class="cyber-card-title">{{ project.name }}</h2>
-        <div class="cyber-card-actions">
+        <div class="cyber-card-actions" v-if="isOwner">
           <button @click="deleteProject(projectId)" class="cyber-delete-btn">
             <i class="fas fa-trash-alt cyber-btn-icon"></i>
             <span class="cyber-btn-text">Delete</span>
@@ -97,7 +97,7 @@ import {
 
 
 export default {
-  props: ['projectId'],
+  props: ['projectId','isOwner'],
 
   data() {
     return {
@@ -115,6 +115,7 @@ export default {
   },
 
   mounted() {
+    console.log(this.isOwner);
     if (this.projectId) {
       this.fetchProject();
     }
@@ -230,21 +231,14 @@ export default {
 
 <style scoped>
 /* Cyber/Developer Theme Styles for Individual Project Details */
-.cyber-project-details {
-  padding: 2rem;
-  background: rgba(10, 10, 20, 0.6);
-  border: 1px solid rgba(0, 102, 255, 0.3);
-  box-shadow: 0 0 30px rgba(0, 102, 255, 0.1);
-  margin-bottom: 2rem;
-}
+
 
 .cyber-card {
   background: rgba(20, 20, 30, 0.7);
-  border: 1px solid #0066ff;
-  box-shadow: 0 0 20px rgba(0, 102, 255, 0.2);
-  padding: 2rem;
   position: relative;
   overflow: auto; /* Ensure content doesn't get clipped */
+  padding: 1rem;
+
 }
 
 .cyber-card-header {
@@ -253,15 +247,13 @@ export default {
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(0, 102, 255, 0.2);
 }
 
 .cyber-card-title {
-  color: #00a2ff;
+  color: white;
   font-family: 'Rajdhani', sans-serif;
   font-weight: 700;
   letter-spacing: 1px;
-  text-shadow: 0 0 5px rgba(0, 102, 255, 0.6);
   font-size: 1.8rem;
   margin: 0;
 }
@@ -275,12 +267,7 @@ export default {
 .cyber-delete-btn,
 .cyber-edit-btn {
   display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.7rem 1.4rem;
   border: none;
-  border-radius: 0;
-  font-family: 'Roboto Mono', monospace;
   font-size: 0.9rem;
   font-weight: bold;
   text-transform: uppercase;
@@ -291,29 +278,20 @@ export default {
 }
 
 .cyber-delete-btn {
-  background-color: rgba(255, 0, 0, 0.15);
+  background: rgba(20, 20, 30, 0.0);
   color: #ff0000;
-  border: 1px solid #990000;
 }
 
-.cyber-delete-btn:hover {
-  background-color: rgba(255, 0, 0, 0.3);
-  box-shadow: 0 0 8px rgba(255, 0, 0, 0.5);
-}
 
 .cyber-edit-btn {
-  background-color: rgba(0, 153, 0, 0.15);
-  color: #00ff00;
-  border: 1px solid #009900;
+  background: rgba(20, 20, 30, 0.0);
+  color: #009dff;
 }
 
-.cyber-edit-btn:hover {
-  background-color: rgba(0, 153, 0, 0.3);
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
-}
+
 
 .cyber-btn-icon {
-  font-size: 1rem;
+  font-size: 1.1rem;
 }
 
 .cyber-btn-text {
@@ -332,7 +310,6 @@ export default {
   font-weight: bold;
   color: #00a2ff;
   margin-right: 0.5rem;
-  text-shadow: 0 0 3px rgba(0, 102, 255, 0.5);
 }
 
 .cyber-link {

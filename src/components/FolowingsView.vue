@@ -1,7 +1,7 @@
 <template>
   <div class="cyber-followings-container">
     <div class="cyber-controls">
-      <router-link to="/home" class="btn back-btn">
+      <router-link :to="`/home/${userId}`" class="btn back-btn">
         <i class="fas fa-arrow-left"></i> GO BACK
       </router-link>
     </div>
@@ -31,20 +31,20 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { getAuth } from 'firebase/auth';
+import { useRoute } from 'vue-router';
 import { db } from '@/firebase';
 import { getDoc, doc } from 'firebase/firestore';
-
+const route = useRoute();
+const userId = route.params.userId;
 const followingUsers = ref([]);
 const loading = ref(true);
 const defaultImage = 'https://via.placeholder.com/150';
 
 onMounted(async () => {
-  const auth = getAuth();
-  const user = auth.currentUser;
+  
 
-  if (user) {
-    const userRef = doc(db, 'users', user.uid);
+  if (userId) {
+    const userRef = doc(db, 'users', userId);
     const userSnap = await getDoc(userRef);
 
     if (userSnap.exists()) {
@@ -69,9 +69,7 @@ onMounted(async () => {
 /* Cyber/Developer Theme Styles for My Followings */
 .cyber-followings-container {
   padding: 2rem;
-  background: rgba(10, 10, 20, 0.7);
-  border: 1px solid rgba(0, 102, 255, 0.3);
-  box-shadow: 0 0 30px rgba(0, 102, 255, 0.1);
+  background: rgba(10, 10, 20);
   min-height: 100vh;
 }
 
@@ -140,9 +138,7 @@ onMounted(async () => {
 .cyber-user-card {
   background: rgba(20, 20, 30, 0.9);
   padding: 2rem;
-  border: 1px solid #0066ff;
-  border-radius: 0;
-  box-shadow: 0 0 15px rgba(0, 102, 255, 0.3);
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -152,7 +148,6 @@ onMounted(async () => {
 
 .cyber-user-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 0 25px rgba(0, 102, 255, 0.5);
 }
 
 .cyber-user-image-wrapper {
@@ -181,7 +176,6 @@ onMounted(async () => {
 .cyber-user-email {
   color: #aaa;
   font-size: 0.9rem;
-  font-family: 'Roboto Mono', monospace;
   margin-bottom: 0;
 }
 
