@@ -158,8 +158,11 @@ const saveProfileChanges = async () => {
   const user = auth.currentUser
   try {
     await updateDoc(userRef, {
-      name: editableUser.name
+      name: editableUser.name,
+      linkedin: editableUser.linkedin,
+      description:editableUser.description
     })
+
 
     if (editableUser.email !== user.email) {
       await verifyBeforeUpdateEmail(user, editableUser.email, {

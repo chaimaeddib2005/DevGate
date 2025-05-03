@@ -104,7 +104,10 @@ import { useRouter,useRoute } from 'vue-router'
 import { getAuth } from 'firebase/auth'
 import { doc, getDoc, addDoc, collection, serverTimestamp } from 'firebase/firestore'
 import { db } from '../firebase'
-import { logout } from '@/composables/UseAuth' // Import the logout function
+
+import { useAuth } from '@/composables/UseAuth'
+
+
 
 const route = useRoute()
 const router = useRouter()
@@ -192,11 +195,17 @@ async function logCodingTime() {
 
 // Logout functions
 const confirmLogout = async () => {
+  const { logout } = useAuth() 
+  
   try {
     await logout()
-    router.push('/login') // Redirect to login page after logout
+
+    window.location.href = '/login'
   } catch (error) {
-    console.error('Logout error:', error)
+    console.error('Logout failed:', error)
+  
+  } finally {
+    showLogoutModal.value = false
   }
 }
 

@@ -18,7 +18,6 @@ import {
   getDoc
 } from 'firebase/firestore'
 
-
 // Reactive user and auth loading states
 const user = ref(null)
 const authLoading = ref(true)
@@ -36,7 +35,7 @@ const getUserData = async (firebaseUser) => {
   return firebaseUser
 }
 
-// Modifiez le onAuthStateChanged pour inclure les données Firestore
+// Auth state observer
 onAuthStateChanged(auth, async (currentUser) => {
   if (currentUser) {
     user.value = await getUserData(currentUser)
@@ -46,7 +45,7 @@ onAuthStateChanged(auth, async (currentUser) => {
   authLoading.value = false
 })
 
-
+// Register function
 const register = async (email, password, name) => {
   const userCredential = await createUserWithEmailAndPassword(auth, email, password)
   const newUser = userCredential.user
@@ -61,8 +60,6 @@ const register = async (email, password, name) => {
   })
 
   await sendEmailVerification(newUser)
-
-  // ✅ Sign out to prevent login until verification
   await signOut(auth)
 
   return userCredential
@@ -74,7 +71,7 @@ const login = (email, password) => signInWithEmailAndPassword(auth, email, passw
 // Reset password
 const resetPassword = (email) => sendPasswordResetEmail(auth, email)
 
-// Google login and Firestore user creation
+// Google login
 const googleLogin = async () => {
   const provider = new GoogleAuthProvider()
   const userCredential = await signInWithPopup(auth, provider)
@@ -87,8 +84,8 @@ const googleLogin = async () => {
     await setDoc(userDocRef, {
       uid: googleUser.uid,
       email: googleUser.email,
-      name: '',
-      photoURL: '',
+      name: googleUser.displayName || '',
+      photoURL: googleUser.photoURL || '',
       role: 'normal'
     })
   }
@@ -96,13 +93,23 @@ const googleLogin = async () => {
   return userCredential
 }
 
-// Anonymous login (you can also add Firestore write here if needed)
+// Anonymous login
 const anonymousLogin = () => signInAnonymously(auth)
 
-// Logout function without router
-const logout = () => signOut(auth)
+// Logout function
+const logout = async () => {
+  try {
+    await signOut(auth)
+    user.value = null
+    return true
+  } catch (error) {
+    console.error('Logout error:', error)
+    throw error
+  }
+}
 
-const getCurrentUser = () => user.value 
+// Get current user
+const getCurrentUser = () => user.value
 
 // Export composable
 export const useAuth = () => {
