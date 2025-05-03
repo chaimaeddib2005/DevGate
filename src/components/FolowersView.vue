@@ -66,7 +66,7 @@ const followerUsers = ref([]);
 const currentUserFollowings = ref([]);
 const loading = ref(true);
 const searchQuery = ref('');
-const defaultImage = 'https://via.placeholder.com/150';
+const defaultImage = '/logo.png';
 
 // Check if viewing own profile
 const isCurrentUser = computed(() => {
@@ -126,19 +126,33 @@ async function GoToprofile(Id) {
 
 async function toggleFollow(targetUserId) {
   try {
-    const currentUserRef = doc(db, 'users', auth.currentUser.uid);
+    const currentUserId = auth.currentUser?.uid;
+    if (!currentUserId) return;
+    
+    const currentUserRef = doc(db, 'users', currentUserId);
+    const targetUserRef = doc(db, 'users', targetUserId);
     
     if (isFollowing(targetUserId)) {
-      // Unfollow
-      await updateDoc(currentUserRef, {
-        followings: arrayRemove(targetUserId)
-      });
+      // Unfollow - remove from current user's followings and from target user's followers
+      await Promise.all([
+        updateDoc(currentUserRef, {
+          followings: arrayRemove(targetUserId)
+        }),
+        updateDoc(targetUserRef, {
+          followers: arrayRemove(currentUserId)
+        })
+      ]);
       currentUserFollowings.value = currentUserFollowings.value.filter(id => id !== targetUserId);
     } else {
-      // Follow
-      await updateDoc(currentUserRef, {
-        followings: arrayUnion(targetUserId)
-      });
+      // Follow - add to current user's followings and to target user's followers
+      await Promise.all([
+        updateDoc(currentUserRef, {
+          followings: arrayUnion(targetUserId)
+        }),
+        updateDoc(targetUserRef, {
+          followers: arrayUnion(currentUserId)
+        })
+      ]);
       currentUserFollowings.value.push(targetUserId);
     }
   } catch (error) {
@@ -146,7 +160,6 @@ async function toggleFollow(targetUserId) {
   }
 }
 </script>
-
 <style scoped>
 /* Cyber/Developer Theme Styles for My Followers */
 .cyber-followers-container {

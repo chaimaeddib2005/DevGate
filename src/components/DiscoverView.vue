@@ -44,16 +44,17 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove,getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, arrayUnion, arrayRemove, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { db } from '../firebase';
-import {useRouter} from 'vue-router'
+import { useRouter } from 'vue-router';
+
 const router = useRouter();
 const auth = getAuth();
 const users = ref([]);
 const currentUserFollowings = ref([]);
 const searchQuery = ref('');
-const defaultPhoto = 'https://via.placeholder.com/150';
+const defaultPhoto = '/logo.png';
 
 // Computed property for filtered users
 const filteredUsers = computed(() => {
@@ -99,8 +100,8 @@ onMounted(async () => {
   });
 });
 
-async function GoToprofile(Id){
-  router.push('/home/'+Id);
+async function GoToprofile(Id) {
+  router.push('/home/' + Id);
 }
 
 // Function to toggle follow status
@@ -111,18 +112,29 @@ async function toggleFollow(otherUserId) {
 
   try {
     const currentUserRef = doc(db, 'users', currentUser.uid);
+    const otherUserRef = doc(db, 'users', otherUserId);
     
     if (isFollowing(otherUserId)) {
-      // Unfollow
-      await updateDoc(currentUserRef, {
-        followings: arrayRemove(otherUserId)
-      });
+      // Unfollow - remove from current user's followings and from other user's followers
+      await Promise.all([
+        updateDoc(currentUserRef, {
+          followings: arrayRemove(otherUserId)
+        }),
+        updateDoc(otherUserRef, {
+          followers: arrayRemove(currentUser.uid)
+        })
+      ]);
       currentUserFollowings.value = currentUserFollowings.value.filter(id => id !== otherUserId);
     } else {
-      // Follow
-      await updateDoc(currentUserRef, {
-        followings: arrayUnion(otherUserId)
-      });
+      // Follow - add to current user's followings and to other user's followers
+      await Promise.all([
+        updateDoc(currentUserRef, {
+          followings: arrayUnion(otherUserId)
+        }),
+        updateDoc(otherUserRef, {
+          followers: arrayUnion(currentUser.uid)
+        })
+      ]);
       currentUserFollowings.value.push(otherUserId);
     }
   } catch (error) {

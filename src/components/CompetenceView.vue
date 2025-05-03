@@ -1,10 +1,10 @@
 <template>
   <div v-if="competenceId" class="container">
     <div v-if="!editmode" class="competence-card">
-      <button @click="deleteCompetence(competenceId)">
+      <button @click="deleteCompetence(competenceId)" v-if="isOwner">
         <i class="fas fa-trash-alt"></i> 
       </button>
-      <button @click="editmode = !editmode">
+      <button @click="editmode = !editmode" v-if="isOwner">
         <i class="fas fa-edit"></i>
       </button>
 
@@ -47,7 +47,10 @@ import {  doc,
   arrayUnion} from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 export default {
-  props: {
+  props: {isOwner:{
+    type:Boolean,
+    required:true
+  },
     competenceId: {
       type: String,
       required: true,

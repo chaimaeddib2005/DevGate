@@ -61,7 +61,7 @@ const userId = route.params.userId;
 const followingUsers = ref([]);
 const loading = ref(true);
 const searchQuery = ref('');
-const defaultImage = 'https://via.placeholder.com/150';
+const defaultImage = '/logo.png';
 
 // Check if the current user is viewing their own followings
 const isCurrentUser = computed(() => {
@@ -105,10 +105,21 @@ async function GoToprofile(Id) {
 
 async function unfollowUser(userIdToUnfollow) {
   try {
-    const currentUserRef = doc(db, 'users', auth.currentUser.uid);
-    await updateDoc(currentUserRef, {
-      followings: arrayRemove(userIdToUnfollow)
-    });
+    const currentUserId = auth.currentUser?.uid;
+    if (!currentUserId) return;
+    
+    const currentUserRef = doc(db, 'users', currentUserId);
+    const targetUserRef = doc(db, 'users', userIdToUnfollow);
+    
+    // Remove from current user's followings and from target user's followers
+    await Promise.all([
+      updateDoc(currentUserRef, {
+        followings: arrayRemove(userIdToUnfollow)
+      }),
+      updateDoc(targetUserRef, {
+        followers: arrayRemove(currentUserId)
+      })
+    ]);
     
     // Remove from local list
     followingUsers.value = followingUsers.value.filter(user => user.id !== userIdToUnfollow);

@@ -119,7 +119,7 @@ const hours = ref(0)
 const minutes = ref(0)
 const validationError = ref('')
 
-const defaultImage = 'https://via.placeholder.com/150'
+const defaultImage = '/logo.png'
 const userId = route.params.userId
 const navItems = [
   { title: 'Compétences', route: '/Competences/'+userId, icon: 'fas fa-tools', description: 'Gérez vos compétences.' },
