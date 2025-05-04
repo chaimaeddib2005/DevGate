@@ -259,7 +259,6 @@ export default {
       } catch (error) {
         console.error('Delete failed:', error);
       }
-      window.location.reload();
     },
   },
 };
