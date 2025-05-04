@@ -24,8 +24,8 @@
       <img :src="userData.photoURL || defaultImage" alt="profile" class="profile-img" />
       <h2>{{ userData.name }}</h2>
       <p>{{ userData.email }}</p>
-      <p>LinkedIn : <a :href="userData.linkedin" target="_blank" rel="noopener noreferrer">{{ userData.name }}</a></p>
-      <p>description : {{ userData.description }}</p>
+      <p v-if="userData.linkedin">LinkedIn : <a :href="userData.linkedin" target="_blank" rel="noopener noreferrer">{{ userData.name }}</a></p>
+      <p v-if="userData.description">description : {{ userData.description }}</p>
       
       <button @click="goToEditProfile" v-if="isanOwner" class="btn edit-btn">Edit Profil</button>
       <button @click="showTimeModal = true" v-if="isanOwner" class="btn time-btn">
